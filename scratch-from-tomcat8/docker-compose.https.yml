@@ -1,0 +1,7 @@
+version: '2'
+services:
+
+  oss-openam:
+    ports:
+      - "24430:443"
+      - "23890:50389"

@@ -28,7 +28,7 @@ curl \
     --data-urlencode "DEPLOYMENT_URI=${OPENAM_CONTEXT}" \
     --data-urlencode "COOKIE_DOMAIN=${OPENAM_COOKIE_DOMAIN}" \
     \
-    --data-urlencode "BASE_DIR=${HOME}/openam" \
+    --data-urlencode "BASE_DIR=${OPENAM_HOME}" \
     --data-urlencode "locale=en_US" \
     --data-urlencode "PLATFORM_LOCALE=en_US" \
     \
@@ -52,11 +52,11 @@ curl \
 _EOT_
 
     echo "INFO: Configure and cleanup"
-    chmod +x /opt/configure_once.sh
-    /opt/configure_once.sh
-    rm -f configure_once.sh
+    chmod +x /var/tmp/configure_once.sh
+    /var/tmp/configure_once.sh
+    rm -f /var/tmp/configure_once.sh
 
-    cat ${HOME}/openam/install.log
+    cat ${OPENAM_HOME}/install.log
 }
 
 # Run OpenAM for configure

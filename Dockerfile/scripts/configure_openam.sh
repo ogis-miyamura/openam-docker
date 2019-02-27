@@ -18,7 +18,9 @@ wait_for_openam_startup() {
 
 configure_openam() {
     OPENAM_CONFIGURE_URL=${OPENAM_PROTOCOL}://localhost:${OPENAM_PORT}/${OPENAM_CONTEXT}/config/configurator
-    cat << _EOT_ > /opt/configure_once.sh
+    CONFIGURE_SCRIPT=/var/tmp/configure_once.sh
+
+    cat << _EOT_ > ${CONFIGURE_SCRIPT}
 #!/usr/bin/env bash
 curl \
     --request POST "${OPENAM_CONFIGURE_URL}" \
@@ -52,9 +54,9 @@ curl \
 _EOT_
 
     echo "INFO: Configure and cleanup"
-    chmod +x /var/tmp/configure_once.sh
-    /var/tmp/configure_once.sh
-    rm -f /var/tmp/configure_once.sh
+    chmod +x ${CONFIGURE_SCRIPT}
+    ${CONFIGURE_SCRIPT}
+    rm -f ${CONFIGURE_SCRIPT}
 
     cat ${OPENAM_HOME}/install.log
 }

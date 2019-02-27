@@ -21,8 +21,9 @@ ARG OPENAM_COOKIE_DOMAIN=.example.com
 ARG OPENAM_ROOT_SUFFIX=dc=openam,dc=example,dc=com
 
 # OpenAM amadmin parameters
-ARG OPENAM_ADMIN_PASSWORD=amadM1n
-ARG OPENAM_LDAPADMIN_PASSWORD=ldapadM1n
+ARG OPENAM_ENCRYPTION_KEY=##AmEnC@@
+ARG OPENAM_ADMIN_PASSWORD=adM1npassword
+ARG OPENAM_LDAPADMIN_PASSWORD=ldapadM1npassword
 
 
 # Copy arguments to environment variables
@@ -39,6 +40,7 @@ ENV OPENAM_URL=${OPENAM_URL}
 ENV OPENAM_COOKIE_DOMAIN=${OPENAM_COOKIE_DOMAIN}
 ENV OPENAM_ROOT_SUFFIX=${OPENAM_ROOT_SUFFIX}
 
+ENV OPENAM_ENCRYPTION_KEY=${OPENAM_ENCRYPTION_KEY}
 ENV OPENAM_ADMIN_PASSWORD=${OPENAM_ADMIN_PASSWORD}
 ENV OPENAM_LDAPADMIN_PASSWORD=${OPENAM_LDAPADMIN_PASSWORD}
 
@@ -50,16 +52,10 @@ RUN \
   curl \
     -L ${OPENAM_WAR_URL} \
     -o ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war
-  # && curl \
-  #   -L ${OPENAM_CONFIGTOOL_URL} \
-  #   -o /opt/openam-configurator-tool.zip \
-  # && unzip -q /opt/openam-configurator-tool.zip \
-  # && rm -f /opt/openam-configurator-tool.zip
 
-# Put run scripts into container
+# Put management scripts into container
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/*.sh \
-  && : "===== Configure OpenAM =====" \
   && /opt/scripts/configure_openam.sh
 
 # Expose ports

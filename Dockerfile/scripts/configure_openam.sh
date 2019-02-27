@@ -17,10 +17,11 @@ wait_for_openam_startup() {
 }
 
 configure_openam() {
+    OPENAM_CONFIGURE_URL=${OPENAM_PROTOCOL}://localhost:${OPENAM_PORT}/${OPENAM_CONTEXT}/config/configurator
     cat << _EOT_ > /opt/configure_once.sh
 #!/usr/bin/env bash
 curl \
-    --request POST "${OPENAM_URL}/${OPENAM_CONTEXT}/config/configurator" \
+    --request POST "${OPENAM_CONFIGURE_URL}" \
     --header "Content-Type:application/x-www-form-urlencoded" \
     \
     --data-urlencode "SERVER_URL=${OPENAM_URL}" \

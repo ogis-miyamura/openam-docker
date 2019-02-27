@@ -6,7 +6,6 @@ MAINTAINER ogis-miyamura
 # OpenAM application parameters
 ARG OPENAM_VERSION=14.0.0-SNAPSHOT
 ARG OPENAM_WAR_URL=https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/OpenAM-${OPENAM_VERSION}.war
-ARG OPENAM_CONFIGTOOL_URL=https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/openam-configurator-tool-13.0.0-SNAPSHOT.zip
 ARG CATALINA_OPTS="-Xmx2048m -server"
 
 # OpenAM server parameters
@@ -29,7 +28,6 @@ ARG OPENAM_LDAPADMIN_PASSWORD=ldapadM1npassword
 # Copy arguments to environment variables
 ENV OPENAM_VERSION=${OPENAM_VERSION}
 ENV OPENAM_WAR_URL=${OPENAM_WAR_URL}
-ENV OPENAM_CONFIGTOOL_URL=${OPENAM_CONFIGTOOL_URL}
 ENV CATALINA_OPTS=${CATALINA_OPTS}
 
 ENV OPENAM_HOSTNAME=${OPENAM_HOSTNAME}

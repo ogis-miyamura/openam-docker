@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
+#
+# Configure OpenAM only once at building container
 
+#######################################
+# Wait for the OpenAM startup
+#######################################
 wait_for_openam_startup() {
     OPENAM_TEST_URL=${OPENAM_PROTOCOL}://localhost:${OPENAM_PORT}/${OPENAM_CONTEXT}/config/options.htm
 
@@ -16,14 +21,64 @@ wait_for_openam_startup() {
     done
 }
 
-configure_openam() {
-    OPENAM_CONFIGURE_URL=${OPENAM_PROTOCOL}://localhost:${OPENAM_PORT}/${OPENAM_CONTEXT}/config/configurator
-    CONFIGURE_SCRIPT=/var/tmp/configure_once.sh
+#######################################
+# Configure the OpenAM by configurator
+#######################################
+configure_openam_by_tool() {
+    CONFIGURATION_PARAMS=/var/tmp/openam_configuration
+    CONFIGURATION_TOOL=${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_URL} .zip)
 
-    cat << _EOT_ > ${CONFIGURE_SCRIPT}
+    cat << _EOT_ > ${CONFIGURATION_PARAMS}
+SERVER_URL=${OPENAM_URL}
+DEPLOYMENT_URI=${OPENAM_CONTEXT}
+COOKIE_DOMAIN=${OPENAM_COOKIE_DOMAIN}
+
+BASE_DIR=${OPENAM_HOME}
+locale=en_US
+PLATFORM_LOCALE=en_US
+
+AM_ENC_KEY=${OPENAM_ENCRYPTION_KEY}
+ADMIN_PWD=${OPENAM_ADMIN_PASSWORD}
+ADMIN_CONFIRM_PWD=${OPENAM_ADMIN_PASSWORD}
+AMLDAPUSERPASSWD=${OPENAM_LDAPADMIN_PASSWORD}
+AMLDAPUSERPASSWD_CONFIRM=${OPENAM_LDAPADMIN_PASSWORD}
+
+DATA_STORE=embedded
+DIRECTORY_SSL=SIMPLE
+DIRECTORY_SERVER=localhost
+DIRECTORY_PORT=50389
+DIRECTORY_ADMIN_PORT=4444
+DIRECTORY_JMX_PORT=1689
+ROOT_SUFFIX=${OPENAM_ROOT_SUFFIX}
+DS_DIRMGRDN=cn=Directory Manager
+DS_DIRMGRPASSWD=${OPENAM_ADMIN_PASSWORD}
+_EOT_
+
+    echo "INFO: Configure by configurator and cleanup"
+
+    unzip -q ${CONFIGURATION_TOOL}.zip
+    rm -f ${CONFIGURATION_TOOL}.zip
+    java \
+        -jar ${CONFIGURATION_TOOL}/openam-configurator-tool*.jar \
+        --file ${CONFIGURATION_PARAMS} \
+        --acceptLicense
+
+    rm -f ${CONFIGURATION_PARAMS}
+
+    cat ${OPENAM_HOME}/install.log
+}
+
+#######################################
+# Configure the OpenAM by REST API
+#######################################
+configure_openam_by_rest() {
+    CONFIGURATION_URL=${OPENAM_PROTOCOL}://localhost:${OPENAM_PORT}/${OPENAM_CONTEXT}/config/configurator
+    CONFIGURATION_SCRIPT=/var/tmp/openam_configuration_once.sh
+
+    cat << _EOT_ > ${CONFIGURATION_SCRIPT}
 #!/usr/bin/env bash
 curl \
-    --request POST "${OPENAM_CONFIGURE_URL}" \
+    --request POST "${CONFIGURATION_URL}" \
     --header "Content-Type:application/x-www-form-urlencoded" \
     \
     --data-urlencode "SERVER_URL=${OPENAM_URL}" \
@@ -53,19 +108,17 @@ curl \
     --data-urlencode "acceptLicense=true"
 _EOT_
 
-    echo "INFO: Configure and cleanup"
-    chmod +x ${CONFIGURE_SCRIPT}
-    ${CONFIGURE_SCRIPT}
-    rm -f ${CONFIGURE_SCRIPT}
+    echo "INFO: Configure by REST API and cleanup"
+
+    chmod +x ${CONFIGURATION_SCRIPT}
+    ${CONFIGURATION_SCRIPT}
+    rm -f ${CONFIGURATION_SCRIPT}
 
     cat ${OPENAM_HOME}/install.log
 }
 
-# Run OpenAM for configure
-${CATALINA_HOME}/bin/startup.sh
-
+#######################################
+# Main
+#######################################
 wait_for_openam_startup
-configure_openam
-
-# Stop OpenAM
-${CATALINA_HOME}/bin/shutdown.sh
+configure_openam_by_tool

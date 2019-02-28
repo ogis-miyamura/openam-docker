@@ -6,7 +6,8 @@ MAINTAINER ogis-miyamura
 # OpenAM application parameters
 ARG OPENAM_VERSION=14.0.0-SNAPSHOT
 ARG OPENAM_WAR_URL=https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/OpenAM-${OPENAM_VERSION}.war
-ARG CATALINA_OPTS="-Xmx2048m -server"
+ARG OPENAM_CONFIGTOOL_URL=https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/openam-configurator-tool-13.0.0-SNAPSHOT.zip
+ARG OPENAM_PRECONFIGURE=y
 
 # OpenAM server parameters
 # - format:   ${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_HTTP(s)_PORT}/${OPENAM_CONTEXT}/
@@ -19,18 +20,22 @@ ARG OPENAM_URL=${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}
 ARG OPENAM_COOKIE_DOMAIN=.example.com
 ARG OPENAM_ROOT_SUFFIX=dc=openam,dc=example,dc=com
 ARG OPENAM_HOME=/opt/openam
-ARG OPENAM_SCRIPT_DIR=/opt/scripts
+ARG OPENAM_INSTALLATION_DIR=/opt/install
 
 # OpenAM amadmin parameters
 ARG OPENAM_ENCRYPTION_KEY=##AmEnC@@
 ARG OPENAM_ADMIN_PASSWORD=adM1npassword
 ARG OPENAM_LDAPADMIN_PASSWORD=ldapadM1npassword
 
+# Tomcat parameters
+ARG CATALINA_OPTS="-Xmx2048m -server"
+
 
 # Copy arguments to environment variables
 ENV OPENAM_VERSION=${OPENAM_VERSION}
 ENV OPENAM_WAR_URL=${OPENAM_WAR_URL}
-ENV CATALINA_OPTS=${CATALINA_OPTS}
+ENV OPENAM_CONFIGTOOL_URL=${OPENAM_CONFIGTOOL_URL}
+ENV OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE}
 
 ENV OPENAM_HOSTNAME=${OPENAM_HOSTNAME}
 ENV OPENAM_PROTOCOL=${OPENAM_PROTOCOL}
@@ -40,25 +45,38 @@ ENV OPENAM_URL=${OPENAM_URL}
 ENV OPENAM_COOKIE_DOMAIN=${OPENAM_COOKIE_DOMAIN}
 ENV OPENAM_ROOT_SUFFIX=${OPENAM_ROOT_SUFFIX}
 ENV OPENAM_HOME=${OPENAM_HOME}
-ENV OPENAM_SCRIPT_DIR=${OPENAM_SCRIPT_DIR}
+ENV OPENAM_INSTALLATION_DIR=${OPENAM_INSTALLATION_DIR}
 
 ENV OPENAM_ENCRYPTION_KEY=${OPENAM_ENCRYPTION_KEY}
 ENV OPENAM_ADMIN_PASSWORD=${OPENAM_ADMIN_PASSWORD}
 ENV OPENAM_LDAPADMIN_PASSWORD=${OPENAM_LDAPADMIN_PASSWORD}
 
+ENV CATALINA_OPTS=${CATALINA_OPTS}
 
+
+# Set working directory
 WORKDIR ${OPENAM_HOME}
 
-# Download and put modules
-RUN \
-  curl \
-    -L ${OPENAM_WAR_URL} \
-    -o ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war
-
 # Put management scripts into container
-COPY scripts ${OPENAM_SCRIPT_DIR}
-RUN chmod +x ${OPENAM_SCRIPT_DIR}/*.sh \
-  && ${OPENAM_SCRIPT_DIR}/configure_openam.sh
+COPY scripts ${OPENAM_INSTALLATION_DIR}
+RUN chmod +x ${OPENAM_INSTALLATION_DIR}/*.sh
+
+# Download modules
+RUN \
+    curl \
+      -L ${OPENAM_WAR_URL} \
+      -o ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war \
+ && curl \
+      -L ${OPENAM_CONFIGTOOL_URL} \
+      -o ${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_URL})
+
+# Start OpenAM once and configure
+RUN \
+    if [ "${OPENAM_PRECONFIGURE}" = "y" ]; then \
+        ${CATALINA_HOME}/bin/startup.sh \
+     && ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
+     && ${CATALINA_HOME}/bin/shutdown.sh \
+    ; fi
 
 # Expose ports
 EXPOSE ${OPENAM_PORT}

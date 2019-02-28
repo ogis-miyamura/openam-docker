@@ -49,7 +49,7 @@ DIRECTORY_SERVER=localhost
 DIRECTORY_PORT=50389
 DIRECTORY_ADMIN_PORT=4444
 DIRECTORY_JMX_PORT=1689
-ROOT_SUFFIX=${OPENAM_ROOT_SUFFIX}
+ROOT_SUFFIX=${OPENAM_ROOT_SUFFIX}"
 DS_DIRMGRDN=cn=Directory Manager
 DS_DIRMGRPASSWD=${OPENAM_ADMIN_PASSWORD}
 _EOT_
@@ -74,64 +74,9 @@ _EOT_
 }
 
 #######################################
-# Configure the OpenAM by REST API
-#######################################
-configure_openam_by_rest() {
-    CONFIGURATION_URL=${OPENAM_PROTOCOL}://localhost:${OPENAM_PORT}/${OPENAM_CONTEXT}/config/configurator
-    CONFIGURATION_SCRIPT=/var/tmp/openam_configuration_once.sh
-
-    cat << _EOT_ > ${CONFIGURATION_SCRIPT}
-#!/usr/bin/env bash
-curl \
-    --request POST "${CONFIGURATION_URL}" \
-    --header "Content-Type:application/x-www-form-urlencoded" \
-    \
-    --data-urlencode "SERVER_URL=${OPENAM_URL}" \
-    --data-urlencode "DEPLOYMENT_URI=${OPENAM_CONTEXT}" \
-    --data-urlencode "COOKIE_DOMAIN=${OPENAM_COOKIE_DOMAIN}" \
-    \
-    --data-urlencode "BASE_DIR=${OPENAM_HOME}" \
-    --data-urlencode "locale=en_US" \
-    --data-urlencode "PLATFORM_LOCALE=en_US" \
-    \
-    --data-urlencode "AM_ENC_KEY=${OPENAM_ENCRYPTION_KEY}" \
-    --data-urlencode "ADMIN_PWD=${OPENAM_ADMIN_PASSWORD}" \
-    --data-urlencode "ADMIN_CONFIRM_PWD=${OPENAM_ADMIN_PASSWORD}" \
-    --data-urlencode "AMLDAPUSERPASSWD=${OPENAM_LDAPADMIN_PASSWORD}" \
-    --data-urlencode "AMLDAPUSERPASSWD_CONFIRM=${OPENAM_LDAPADMIN_PASSWORD}" \
-    \
-    --data-urlencode "DATA_STORE=embedded" \
-    --data-urlencode "DIRECTORY_SSL=SIMPLE" \
-    --data-urlencode "DIRECTORY_SERVER=localhost" \
-    --data-urlencode "DIRECTORY_PORT=50389" \
-    --data-urlencode "DIRECTORY_ADMIN_PORT=4444" \
-    --data-urlencode "DIRECTORY_JMX_PORT=1689" \
-    --data-urlencode "ROOT_SUFFIX=${OPENAM_ROOT_SUFFIX}" \
-    --data-urlencode "DS_DIRMGRDN=cn=Directory Manager" \
-    --data-urlencode "DS_DIRMGRPASSWD=${OPENAM_ADMIN_PASSWORD}" \
-    \
-    --data-urlencode "acceptLicense=true"
-_EOT_
-
-    echo "INFO: Configure by REST API and cleanup"
-
-    wait_for_openam_startup
-
-    chmod +x ${CONFIGURATION_SCRIPT}
-
-    ${CONFIGURATION_SCRIPT}
-    result_code=$?
-
-    rm -f ${CONFIGURATION_SCRIPT}
-
-    cat ${OPENAM_HOME}/install.log
-
-    return $result_code
-}
-
-#######################################
 # Main
 #######################################
+wait_for_openam_startup
 configure_openam_by_tool
 
 exit $?

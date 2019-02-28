@@ -36,7 +36,7 @@ ENV OPENAM_CONFIGTOOL_URL ${OPENAM_CONFIGTOOL_URL:-https://github.com/ogis-miyam
 ENV OPENAM_PRECONFIGURE ${OPENAM_PRECONFIGURE:-y}
 
 # OpenAM server parameters
-# - format:   ${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_HTTP(s)_PORT}/${OPENAM_CONTEXT}/
+# - format:   ${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}/${OPENAM_CONTEXT}/
 # - example:  http://openam.example.com:8080/sso/
 ENV OPENAM_HOSTNAME ${OPENAM_HOSTNAME:-openam.example.com}
 ENV OPENAM_PROTOCOL ${OPENAM_PROTOCOL:-http}

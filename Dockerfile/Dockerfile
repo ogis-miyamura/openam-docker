@@ -57,18 +57,19 @@ ENV CATALINA_OPTS=${CATALINA_OPTS}
 # Set working directory
 WORKDIR ${OPENAM_HOME}
 
-# Put management scripts into container
-COPY scripts ${OPENAM_INSTALLATION_DIR}
-RUN chmod +x ${OPENAM_INSTALLATION_DIR}/*.sh
-
 # Download modules
 RUN \
     curl \
       -L ${OPENAM_WAR_URL} \
       -o ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war \
+ && mkdir -p ${OPENAM_INSTALLATION_DIR} \
  && curl \
       -L ${OPENAM_CONFIGTOOL_URL} \
       -o ${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_URL})
+
+# Put management scripts into container
+COPY scripts ${OPENAM_INSTALLATION_DIR}
+RUN chmod +x ${OPENAM_INSTALLATION_DIR}/*.sh
 
 # Start OpenAM once and configure
 RUN \

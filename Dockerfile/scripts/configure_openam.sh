@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Configure OpenAM only once at building container
+# Configure OpenAM only once
 
 #######################################
 # Wait for the OpenAM startup
@@ -54,18 +54,20 @@ DS_DIRMGRDN=cn=Directory Manager
 DS_DIRMGRPASSWD=${OPENAM_ADMIN_PASSWORD}
 _EOT_
 
-    echo "INFO: Configure by configurator and cleanup"
+    echo "INFO: Configure by openam-configurator-tool and cleanup"
 
-    unzip -q ${CONFIGURATION_TOOL}.zip
+    unzip -q ${CONFIGURATION_TOOL}.zip -d ${OPENAM_INSTALLATION_DIR}
     rm -f ${CONFIGURATION_TOOL}.zip
+
+    echo "127.0.0.1 ${OPENAM_HOSTNAME}" >> /etc/hosts
+
     java \
-        -jar ${CONFIGURATION_TOOL}/openam-configurator-tool*.jar \
+        -jar $(ls ${CONFIGURATION_TOOL}/openam-configurator-tool*.jar) \
         --file ${CONFIGURATION_PARAMS} \
-        --acceptLicense
+        --acceptLicense \
+      | tee ${OPENAM_HOME}/install.log
 
     rm -f ${CONFIGURATION_PARAMS}
-
-    cat ${OPENAM_HOME}/install.log
 }
 
 #######################################
@@ -110,8 +112,11 @@ _EOT_
 
     echo "INFO: Configure by REST API and cleanup"
 
+    wait_for_openam_startup
+
     chmod +x ${CONFIGURATION_SCRIPT}
     ${CONFIGURATION_SCRIPT}
+
     rm -f ${CONFIGURATION_SCRIPT}
 
     cat ${OPENAM_HOME}/install.log
@@ -120,5 +125,4 @@ _EOT_
 #######################################
 # Main
 #######################################
-wait_for_openam_startup
 configure_openam_by_tool

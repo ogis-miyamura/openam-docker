@@ -60,14 +60,17 @@ _EOT_
     rm -f ${CONFIGURATION_TOOL}.zip
 
     echo "127.0.0.1 ${OPENAM_HOSTNAME}" >> /etc/hosts
-
     java \
         -jar $(ls ${CONFIGURATION_TOOL}/openam-configurator-tool*.jar) \
         --file ${CONFIGURATION_PARAMS} \
         --acceptLicense \
       | tee ${OPENAM_HOME}/install.log
 
+    result_code=$?
+
     rm -f ${CONFIGURATION_PARAMS}
+
+    return $result_code
 }
 
 #######################################
@@ -115,14 +118,20 @@ _EOT_
     wait_for_openam_startup
 
     chmod +x ${CONFIGURATION_SCRIPT}
+
     ${CONFIGURATION_SCRIPT}
+    result_code=$?
 
     rm -f ${CONFIGURATION_SCRIPT}
 
     cat ${OPENAM_HOME}/install.log
+
+    return $result_code
 }
 
 #######################################
 # Main
 #######################################
 configure_openam_by_tool
+
+exit $?

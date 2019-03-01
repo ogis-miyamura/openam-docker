@@ -58,9 +58,9 @@ esac
 
 docker build \
     --build-arg IMAGE_FROM=${IMAGE_FROM} \
-    --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE} \
-    --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION} \
-    --build-arg CENTOS7_JDK_VERSION=${CENTOS7_JDK_VERSION} \
-    ${DOCKERFILE_PATH_ARG:-"-f $DOCKERFILE_PATH"} \
-    -t $IMAGE_NAME \
+    --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE:-"n"} \
+    --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION:-""} \
+    --build-arg CENTOS7_JDK_VERSION=${CENTOS7_JDK_VERSION:-""} \
+    -f ${DOCKERFILE_PATH:-"Dockerfile"} \
+    -t ${IMAGE_NAME} \
     .

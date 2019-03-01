@@ -50,7 +50,7 @@ ExecReStart=${CATALINA_HOME}/bin/shutdown.sh;${CATALINA_HOME}/bin/startup.sh
 WantedBy=multi-user.target
 _EOT_
 
-chmod 755 ${TOMCAT_SYSTEMD_UNIT}
+chmod 644 ${TOMCAT_SYSTEMD_UNIT}
 
 
 # Prepare to start Tomcat service

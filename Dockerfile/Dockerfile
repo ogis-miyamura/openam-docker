@@ -97,6 +97,7 @@ RUN \
       -L ${OPENAM_WAR_URL} \
       -o ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war \
  && mkdir -p ${OPENAM_INSTALLATION_DIR} \
+ && mkdir -p ${OPENAM_HOME} \
  && curl \
       -L ${OPENAM_CONFIGTOOL_URL} \
       -o ${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_URL})

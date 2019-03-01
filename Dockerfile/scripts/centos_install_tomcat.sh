@@ -17,6 +17,7 @@ curl \
     -L ${CENTOS7_TOMCAT_URL} \
     -o ${TOMCAT_TGZ_NAME}.tar.gz
 
+
 tar -xzf ${TOMCAT_TGZ_NAME}.tar.gz
 rm -f ${TOMCAT_TGZ_NAME}.tar.gz
 ln -s /usr/local/apache-tomcat-${CENTOS7_TOMCAT_VERSION} ${CATALINA_HOME}
@@ -26,7 +27,7 @@ ln -s /usr/local/apache-tomcat-${CENTOS7_TOMCAT_VERSION} ${CATALINA_HOME}
 TOMCAT_SYSTEMD_UNIT=/etc/systemd/system/tomcat.service
 cat << _EOT_ > ${TOMCAT_SYSTEMD_UNIT}
 [Unit]
-Description=Apache Tomcat ${CENTOS7_CENTOS7_TOMCAT_VERSION}
+Description=Apache Tomcat ${CENTOS7_TOMCAT_VERSION}
 After=syslog.target network.target
 
 [Service]

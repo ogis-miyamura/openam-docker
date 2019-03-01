@@ -1,10 +1,14 @@
 ARG IMAGE_FROM
-ARG CENTOS7_TOMCAT_VERSION
-ARG CENTOS7_JDK_VERSION
-FROM ${BASE_IMAGE}
+FROM ${IMAGE_FROM}
 
 MAINTAINER ogis-miyamura
 
+
+# CentOS7 package parameters
+ARG CENTOS7_TOMCAT_MAJOR
+ARG CENTOS7_TOMCAT_VERSION
+ARG CENTOS7_JDK_VERSION
+ARG CENTOS7_TOMCAT_URL
 
 # OpenAM application parameters
 ARG OPENAM_VERSION
@@ -32,11 +36,16 @@ ARG OPENAM_LDAPADMIN_PASSWORD
 ARG CATALINA_OPTS
 
 
+# CentOS7 package parameters
+ENV CENTOS7_TOMCAT_MAJOR ${CENTOS7_TOMCAT_MAJOR}
+ENV CENTOS7_TOMCAT_VERSION ${CENTOS7_TOMCAT_VERSION}
+ENV CENTOS7_JDK_VERSION ${CENTOS7_JDK_VERSION}
+ENV CENTOS7_TOMCAT_URL ${CENTOS7_TOMCAT_URL:-https://archive.apache.org/dist/tomcat/tomcat-${CENTOS7_TOMCAT_MAJOR}/v${CENTOS7_TOMCAT_VERSION}/bin/apache-tomcat-${CENTOS7_TOMCAT_VERSION}.tar.gz}
+
 # OpenAM application parameters
 ENV OPENAM_VERSION ${OPENAM_VERSION:-14.0.0-SNAPSHOT
 ENV OPENAM_WAR_URL ${OPENAM_WAR_URL:-https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/OpenAM-${OPENAM_VERSION}.war}
 ENV OPENAM_CONFIGTOOL_URL ${OPENAM_CONFIGTOOL_URL:-https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/openam-configurator-tool-13.0.0-SNAPSHOT.zip}
-ENV OPENAM_PRECONFIGURE ${OPENAM_PRECONFIGURE:-y}
 
 # OpenAM server parameters
 # - format:   ${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}/${OPENAM_CONTEXT}/
@@ -57,15 +66,34 @@ ENV OPENAM_ADMIN_PASSWORD ${OPENAM_ADMIN_PASSWORD:-adM1npassword}
 ENV OPENAM_LDAPADMIN_PASSWORD ${OPENAM_LDAPADMIN_PASSWORD:-ldapadM1npassword}
 
 # Tomcat parameters
+ENV CATALINA_HOME ${CATALINA_HOME:-/usr/local/tomcat}
 ENV CATALINA_OPTS ${CATALINA_OPTS:-"-Xmx2048m -server"}
 
 
-# Set working directory
-WORKDIR ${OPENAM_HOME}
+# Put management scripts into container
+COPY scripts ${OPENAM_INSTALLATION_DIR}
+RUN chmod +x ${OPENAM_INSTALLATION_DIR}/*.sh
 
-# Download modules
+
+# Install JDK for CentOS
 RUN \
-    curl \
+    if [ -n "${CENTOS7_JDK_VERSION}" ]; then \
+        echo "INFO: Install OpenJDK ${CENTOS7_JDK_VERSION}" \
+     && ${OPENAM_INSTALLATION_DIR}/centos_install_jdk.sh \
+    ; fi
+
+# Install Tomcat for CentOS
+RUN \
+    if [ -n "${CENTOS7_TOMCAT_VERSION}" ]; then \
+        echo "INFO: Install Tomcat ${CENTOS7_TOMCAT_VERSION}" \
+     && ${OPENAM_INSTALLATION_DIR}/centos_install_tomcat.sh \
+    ; fi
+
+
+# Download OpenAM modules
+RUN \
+    mkdir -p ${CATALINA_HOME}/webapps \
+ && curl \
       -L ${OPENAM_WAR_URL} \
       -o ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war \
  && mkdir -p ${OPENAM_INSTALLATION_DIR} \
@@ -73,9 +101,6 @@ RUN \
       -L ${OPENAM_CONFIGTOOL_URL} \
       -o ${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_URL})
 
-# Put management scripts into container
-COPY scripts ${OPENAM_INSTALLATION_DIR}
-RUN chmod +x ${OPENAM_INSTALLATION_DIR}/*.sh
 
 # Start OpenAM once and configure
 RUN \
@@ -86,5 +111,11 @@ RUN \
      && ${CATALINA_HOME}/bin/shutdown.sh \
     ; fi
 
+
+# Set working directory
+WORKDIR ${OPENAM_HOME}
+
 # Expose ports
 EXPOSE ${OPENAM_PORT}
+
+CMD ["/sbin/init"]

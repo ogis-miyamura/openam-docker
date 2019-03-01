@@ -28,13 +28,16 @@ case ${DOCKER_TAG} in
 
         case ${DOCKER_TAG} in
             *-tomcat85* )
+                CENTOS7_TOMCAT_MAJOR='8'
                 CENTOS7_TOMCAT_VERSION='8.5.38'
                 ;;
             *-tomcat90* )
+                CENTOS7_TOMCAT_MAJOR='9'
                 CENTOS7_TOMCAT_VERSION='9.0.16'
                 ;;
             * )
                 # Default value is Tomcat 8.0
+                CENTOS7_TOMCAT_MAJOR='8'
                 CENTOS7_TOMCAT_VERSION='8.0.53'
                 ;;
         esac
@@ -59,6 +62,7 @@ esac
 docker build \
     --build-arg IMAGE_FROM=${IMAGE_FROM} \
     --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE:-"n"} \
+    --build-arg CENTOS7_TOMCAT_MAJOR=${CENTOS7_TOMCAT_MAJOR:-""} \
     --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION:-""} \
     --build-arg CENTOS7_JDK_VERSION=${CENTOS7_JDK_VERSION:-""} \
     -f ${DOCKERFILE_PATH:-"Dockerfile"} \

@@ -61,6 +61,19 @@ case ${DOCKER_TAG} in
         ;;
 esac
 
+cat << _EOT_
+docker build \
+    --build-arg IMAGE_FROM=${IMAGE_FROM} \
+    --build-arg SUDO_TOMCAT_CMD=${SUDO_TOMCAT_CMD} \
+    --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE:-"n"} \
+    --build-arg CENTOS7_TOMCAT_MAJOR=${CENTOS7_TOMCAT_MAJOR:-""} \
+    --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION:-""} \
+    --build-arg CENTOS7_JDK_VERSION=${CENTOS7_JDK_VERSION:-""} \
+    -f ${DOCKERFILE_PATH:-"Dockerfile"} \
+    -t ${IMAGE_NAME} \
+    .
+_EOT_
+
 docker build \
     --build-arg IMAGE_FROM=${IMAGE_FROM} \
     --build-arg SUDO_TOMCAT_CMD=${SUDO_TOMCAT_CMD} \

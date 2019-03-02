@@ -10,6 +10,8 @@ fi
 
 yum -y install \
     java-${CENTOS7_JDK_VERSION:-''}-openjdk \
+    sudo \
+    less \
     unzip \
     gzip2
 

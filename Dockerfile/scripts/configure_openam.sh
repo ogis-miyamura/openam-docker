@@ -54,7 +54,7 @@ DS_DIRMGRDN=cn=Directory Manager
 DS_DIRMGRPASSWD=${OPENAM_ADMIN_PASSWORD}
 _EOT_
 
-    echo "INFO: Configure by openam-configurator-tool and cleanup"
+    echo "INFO: Execute openam-configurator-tool"
 
     unzip -q ${CONFIGURATION_TOOL}.zip -d ${OPENAM_INSTALLATION_DIR}
     rm -f ${CONFIGURATION_TOOL}.zip
@@ -64,9 +64,11 @@ _EOT_
         -jar $(ls ${CONFIGURATION_TOOL}/openam-configurator-tool*.jar) \
         --file ${CONFIGURATION_PARAMS} \
         --acceptLicense \
-      | tee ${OPENAM_HOME}/install.log
+      > ${OPENAM_HOME}/install.log
 
     result_code=$?
+
+    cat ${OPENAM_HOME}/install.log
 
     rm -f ${CONFIGURATION_PARAMS}
 

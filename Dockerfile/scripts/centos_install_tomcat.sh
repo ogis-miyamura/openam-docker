@@ -53,8 +53,11 @@ _EOT_
 chmod 644 ${TOMCAT_SYSTEMD_UNIT}
 
 
-# Prepare to start Tomcat service
-chown -R tomcat. /usr/local/apache-tomcat-${CENTOS7_TOMCAT_VERSION}
-chown -R tomcat. ${CATALINA_HOME}
+# Prepare to start Tomcat service for 'tomcat' user
+mkdir -p ${OPENAM_HOME}
+chown -R tomcat. \
+    /usr/local/apache-tomcat-${CENTOS7_TOMCAT_VERSION} \
+    ${CATALINA_HOME} \
+    ${OPENAM_HOME}
 
 systemctl enable tomcat

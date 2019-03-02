@@ -25,6 +25,8 @@ esac
 case ${DOCKER_TAG} in
     cent7-* )
         IMAGE_FROM='centos:centos7'
+        RUN_CMD='"/sbin/init"'
+        SUDO_TOMCAT_CMD='sudo -u tomcat '
 
         case ${DOCKER_TAG} in
             *-tomcat85* )
@@ -56,11 +58,14 @@ case ${DOCKER_TAG} in
     * )
         # Default value is official 'tomcat:8.0-jre8' image
         IMAGE_FROM='tomcat:8.0-jre8'
+        RUN_CMD='"catalina.sh", "run"'
+        SUDO_TOMCAT_CMD=''
         ;;
 esac
 
 docker build \
     --build-arg IMAGE_FROM=${IMAGE_FROM} \
+    --build-arg RUN_CMD=${RUN_CMD} \
     --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE:-"n"} \
     --build-arg CENTOS7_TOMCAT_MAJOR=${CENTOS7_TOMCAT_MAJOR:-""} \
     --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION:-""} \

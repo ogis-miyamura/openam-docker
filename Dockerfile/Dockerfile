@@ -4,6 +4,12 @@ FROM ${IMAGE_FROM}
 MAINTAINER ogis-miyamura
 
 
+# ===== Get build arguments =====
+
+# Docker build base arguments
+ARG IMAGE_FROM
+ARG SUDO_TOMCAT_CMD
+
 # CentOS7 package parameters
 ARG CENTOS7_TOMCAT_MAJOR
 ARG CENTOS7_TOMCAT_VERSION
@@ -36,6 +42,8 @@ ARG OPENAM_LDAPADMIN_PASSWORD
 ARG CATALINA_OPTS
 
 
+# ===== Set up environment parameters =====
+
 # CentOS7 package parameters
 ENV CENTOS7_TOMCAT_MAJOR ${CENTOS7_TOMCAT_MAJOR}
 ENV CENTOS7_TOMCAT_VERSION ${CENTOS7_TOMCAT_VERSION}
@@ -43,7 +51,7 @@ ENV CENTOS7_JDK_VERSION ${CENTOS7_JDK_VERSION}
 ENV CENTOS7_TOMCAT_URL ${CENTOS7_TOMCAT_URL:-https://archive.apache.org/dist/tomcat/tomcat-${CENTOS7_TOMCAT_MAJOR}/v${CENTOS7_TOMCAT_VERSION}/bin/apache-tomcat-${CENTOS7_TOMCAT_VERSION}.tar.gz}
 
 # OpenAM application parameters
-ENV OPENAM_VERSION ${OPENAM_VERSION:-14.0.0-SNAPSHOT
+ENV OPENAM_VERSION ${OPENAM_VERSION:-14.0.0-SNAPSHOT}
 ENV OPENAM_WAR_URL ${OPENAM_WAR_URL:-https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/OpenAM-${OPENAM_VERSION}.war}
 ENV OPENAM_CONFIGTOOL_URL ${OPENAM_CONFIGTOOL_URL:-https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/openam-configurator-tool-13.0.0-SNAPSHOT.zip}
 
@@ -56,7 +64,7 @@ ENV OPENAM_PORT ${OPENAM_PORT:-8080}
 ENV OPENAM_CONTEXT ${OPENAM_CONTEXT:-sso}
 ENV OPENAM_URL ${OPENAM_URL:-${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}}
 ENV OPENAM_COOKIE_DOMAIN ${OPENAM_COOKIE_DOMAIN:-.example.com}
-ENV OPENAM_ROOT_SUFFIX ${OPENAM_ROOT_SUFFIX:-dc openam,dc example,dc com}
+ENV OPENAM_ROOT_SUFFIX ${OPENAM_ROOT_SUFFIX:-dc=openam,dc=example,dc=com}
 ENV OPENAM_HOME ${OPENAM_HOME:-/opt/openam}
 ENV OPENAM_INSTALLATION_DIR ${OPENAM_INSTALLATION_DIR:-/opt/install}
 
@@ -70,25 +78,26 @@ ENV CATALINA_HOME ${CATALINA_HOME:-/usr/local/tomcat}
 ENV CATALINA_OPTS ${CATALINA_OPTS:-"-Xmx2048m -server"}
 
 
-# Put management scripts into container
-COPY scripts ${OPENAM_INSTALLATION_DIR}
-RUN chmod +x ${OPENAM_INSTALLATION_DIR}/*.sh
+# ===== CentOS package installation =====
 
-
-# Install JDK for CentOS
+# Install JDK and Tomcat for CentOS
+COPY scripts/centos_install_jdk.sh ${OPENAM_INSTALLATION_DIR}/
+COPY scripts/centos_install_tomcat.sh ${OPENAM_INSTALLATION_DIR}/
 RUN \
-    if [ -n "${CENTOS7_JDK_VERSION}" ]; then \
-        echo "INFO: Install OpenJDK ${CENTOS7_JDK_VERSION}" \
-     && ${OPENAM_INSTALLATION_DIR}/centos_install_jdk.sh \
-    ; fi
+    case ${IMAGE_FROM} in \
+        centos* ) \
+            echo "INFO: Install OpenJDK ${CENTOS7_JDK_VERSION}" \
+         && chmod +x ${OPENAM_INSTALLATION_DIR}/centos_install_jdk.sh \
+         && ${OPENAM_INSTALLATION_DIR}/centos_install_jdk.sh \
+            \
+         && echo "INFO: Install Tomcat ${CENTOS7_TOMCAT_VERSION}" \
+         && chmod +x ${OPENAM_INSTALLATION_DIR}/centos_install_tomcat.sh \
+         && ${OPENAM_INSTALLATION_DIR}/centos_install_tomcat.sh \
+            ;; \
+    esac
 
-# Install Tomcat for CentOS
-RUN \
-    if [ -n "${CENTOS7_TOMCAT_VERSION}" ]; then \
-        echo "INFO: Install Tomcat ${CENTOS7_TOMCAT_VERSION}" \
-     && ${OPENAM_INSTALLATION_DIR}/centos_install_tomcat.sh \
-    ; fi
 
+# ===== OpanAM installation =====
 
 # Download OpenAM modules
 RUN \
@@ -104,14 +113,18 @@ RUN \
 
 
 # Start OpenAM once and configure
+COPY scripts/configure_openam.sh ${OPENAM_INSTALLATION_DIR}/
 RUN \
     if [ "${OPENAM_PRECONFIGURE}" = "y" ]; then \
         echo "INFO: Start OpenAM pre-configure" \
-     && ${CATALINA_HOME}/bin/startup.sh \
+     && ${SUDO_TOMCAT_CMD} ${CATALINA_HOME}/bin/startup.sh \
+     && chmod +x ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
      && ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
-     && ${CATALINA_HOME}/bin/shutdown.sh \
+     && ${SUDO_TOMCAT_CMD} ${CATALINA_HOME}/bin/shutdown.sh \
     ; fi
 
+
+# ===== Prepare to run container =====
 
 # Set working directory
 WORKDIR ${OPENAM_HOME}
@@ -119,4 +132,8 @@ WORKDIR ${OPENAM_HOME}
 # Expose ports
 EXPOSE ${OPENAM_PORT}
 
-CMD ["/sbin/init"]
+# Put entrypoint script
+COPY scripts/entrypoint.sh /opt/
+RUN chmod +x /opt/entrypoint.sh
+
+CMD ["/opt/entrypoint.sh"]

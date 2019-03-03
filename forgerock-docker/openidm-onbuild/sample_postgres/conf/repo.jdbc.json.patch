@@ -1,7 +1,0 @@
-[
-    {
-        "operation" : "replace",
-        "field" : "/resourceMapping/genericMapping/updates/searchableDefault",
-        "value" : false
-    }
-]

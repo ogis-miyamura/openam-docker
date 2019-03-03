@@ -1,7 +1,0 @@
-
-*.zip
-*.war
-staging/
-tmp/
-docker.iml
-logs/

@@ -1,2 +1,1 @@
-# openam-docker
-Dockerfiles, Docker-Compose for OpenAM
+# OpenAM-jp/OpenAM Dockerfile

@@ -1,3 +1,19 @@
+# FROM Maven , git pull 
+# $ mvn install -f forgerock-parent
+# $ mvn install -f forgerock-bom
+# $ mvn install -f forgerock-build-tools
+# $ mvn install -f forgerock-i18n-framework
+# $ mvn install -f forgerock-guice
+# $ mvn install -f forgerock-guava
+# $ mvn install -f forgerock-ui
+# $ mvn install -DskipTests -f forgerock-commons
+# $ mvn install -f opendj-sdk
+# $ mvn install -DskipTests -f forgerock-persistit
+# $ mvn install -f opendj
+# $ mvn install -f forgerock-bloomfilter
+# $ mvn install -f openam
+# Stash openam.war
+
 ARG IMAGE_FROM
 FROM ${IMAGE_FROM}
 

@@ -6,15 +6,16 @@ set -eu
 
 # ===== tag patterns =====
 #
-# trial (tomcat80, preconfig=y)
-# tomcat80 (tomcat80, preconfig=y)
+# trial (tomcat85, preconfigured)
+# tomcat85 (tomcat85)
 #
-# cent7-tomcat80 (centos7, tomcat80, not configured)
-# cent7-tomcat80-trial (centos7, tomcat80, preconfig=y)
+# cent7-tomcat85-trial (centos7, tomcat85, preconfigured)
+# cent7-tomcat85 (centos7, tomcat85)
 #
-# cent7-jdk11-trial (centos7, jdk11, preconfig=y)
-# cent7-tomcat85-trial (centos7, tomcat85, preconfig=y)
-# cent7-tomcat90-trial (centos7, tomcat90, preconfig=y)
+# cent7-tomcat70-trial (centos7, tomcat70, preconfigured)
+# cent7-tomcat90-trial (centos7, tomcat90, preconfigured)
+#
+# cent7-jdk11-trial (centos7, tomcat85, jdk11, preconfigured)
 
 case ${DOCKER_TAG} in
     *trial )
@@ -28,18 +29,18 @@ case ${DOCKER_TAG} in
         SUDO_TOMCAT_CMD='sudo -u tomcat '
 
         case ${DOCKER_TAG} in
-            *-tomcat85* )
-                CENTOS7_TOMCAT_MAJOR='8'
-                CENTOS7_TOMCAT_VERSION='8.5.38'
+            *-tomcat70* )
+                CENTOS7_TOMCAT_MAJOR='7'
+                CENTOS7_TOMCAT_VERSION='7.0.93'
                 ;;
             *-tomcat90* )
                 CENTOS7_TOMCAT_MAJOR='9'
                 CENTOS7_TOMCAT_VERSION='9.0.16'
                 ;;
             * )
-                # Default value is Tomcat 8.0
+                # Default value is Tomcat 8.5
                 CENTOS7_TOMCAT_MAJOR='8'
-                CENTOS7_TOMCAT_VERSION='8.0.53'
+                CENTOS7_TOMCAT_VERSION='8.5.38'
                 ;;
         esac
 
@@ -55,23 +56,24 @@ case ${DOCKER_TAG} in
         ;;
 
     * )
-        # Default value is official 'tomcat:8.0-jre8' image
-        IMAGE_FROM='tomcat:8.0-jre8'
+        # Default value is official 'tomcat:8.5-jre8' image
+        IMAGE_FROM='tomcat:8.5-jre8'
+        CENTOS7_TOMCAT_MAJOR='8'
+        CENTOS7_TOMCAT_VERSION='8.5.38'
         SUDO_TOMCAT_CMD=''
         ;;
 esac
 
 cat << _EOT_
-docker build \
-    --build-arg IMAGE_FROM="${IMAGE_FROM}" \
-    --build-arg SUDO_TOMCAT_CMD="${SUDO_TOMCAT_CMD}" \
-    --build-arg OPENAM_PRECONFIGURE="${OPENAM_PRECONFIGURE:-"n"}" \
-    --build-arg CENTOS7_TOMCAT_MAJOR="${CENTOS7_TOMCAT_MAJOR:-""}" \
-    --build-arg CENTOS7_TOMCAT_VERSION="${CENTOS7_TOMCAT_VERSION:-""}" \
-    --build-arg CENTOS7_JDK_VERSION="${CENTOS7_JDK_VERSION:-""}" \
-    -f ${DOCKERFILE_PATH:-"Dockerfile"} \
-    -t ${IMAGE_NAME} \
-    .
+Docker build parameters:
+ - IMAGE_FROM="${IMAGE_FROM}"
+ - SUDO_TOMCAT_CMD="${SUDO_TOMCAT_CMD}"
+ - OPENAM_PRECONFIGURE="${OPENAM_PRECONFIGURE:-"n"}"
+ - CENTOS7_TOMCAT_MAJOR="${CENTOS7_TOMCAT_MAJOR:-""}"
+ - CENTOS7_TOMCAT_VERSION="${CENTOS7_TOMCAT_VERSION:-""}"
+ - CENTOS7_JDK_VERSION="${CENTOS7_JDK_VERSION:-""}"
+ - f ${DOCKERFILE_PATH:-"Dockerfile"}
+ - t ${IMAGE_NAME}
 _EOT_
 
 docker build \

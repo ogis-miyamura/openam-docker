@@ -26,7 +26,7 @@ wait_for_openam_startup() {
 #######################################
 configure_openam_by_tool() {
     CONFIGURATION_PARAMS=/var/tmp/openam_configuration
-    CONFIGURATION_TOOL=${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_URL} .zip)
+    CONFIGURATION_TOOL=${OPENAM_INSTALLATION_DIR}/$(basename ${OPENAM_CONFIGTOOL_NAME} .zip)
 
     cat << _EOT_ > ${CONFIGURATION_PARAMS}
 SERVER_URL=${OPENAM_URL}

@@ -12,8 +12,6 @@ ARG OPENAM_CONFIGTOOL_URL
 
 FROM centos:centos7 as download-env
 
-MAINTAINER ogis-miyamura
-
 
 # OpenAM application parameters
 ENV OPENAM_VERSION ${OPENAM_VERSION:-14.0.0-SNAPSHOT}
@@ -34,8 +32,6 @@ RUN \
 # ===== Build target image =====
 
 FROM ${IMAGE_FROM}
-
-MAINTAINER ogis-miyamura
 
 
 # ===== Get build arguments =====

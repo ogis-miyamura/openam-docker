@@ -29,7 +29,7 @@
                 --name openam \
                 --rm \
                 -p 18080:8080 \
-                ogismiyamura/openam:cent7-tomcat80-trial
+                ogismiyamura/openam:cent7-tomcat85-trial
 
 1. systemd を使用して Tomcat をサービスとして起動する場合
 
@@ -41,15 +41,15 @@
                 --rm \
                 -p 18080:8080 \
                 -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-                ogismiyamura/openam:cent7-tomcat80-trial \
+                ogismiyamura/openam:cent7-tomcat85-trial \
                 /sbin/init
 
 
 ### 未セットアップの OpenAM コンテナを起動し、手動で設定を行う手順
 
 1. コンテナイメージのタグ ID を次の値に変更します
-    - `:trial` -> `:tomcat80`
-    - `:cent7-tomcat80-trial` -> `cent7-tomcat80`
+    - `:trial` -> `:tomcat85`
+    - `:cent7-tomcat85-trial` -> `cent7-tomcat85`
 
 
 ### Dockerfile をビルドする手順

@@ -1,0 +1,12 @@
+[http]
+        proxy = ${HTTP_PROXY}
+[https]
+        proxy = ${HTTPS_PROXY}
+[url "https://"]
+        insteadOf = git://
+[user]
+        name = ${JENKINS_GIT_USER}
+        email = ${JENKINS_GIT_MAIL}
+[credential]
+        helper = !aws --region us-east-1 codecommit credential-helper $@
+        UseHttpPath = true

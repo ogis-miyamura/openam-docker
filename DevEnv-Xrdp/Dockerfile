@@ -101,6 +101,7 @@ COPY DockerfileResources/mvn_settings_template.xml /usr/local/src/
 RUN \
     export HTTP_PROXY_HOST=`echo \${HTTP_PROXY} | sed -e 's|.*//\(.\+\):.*|\1|'` \
  && export HTTP_PROXY_PORT=`echo \${HTTP_PROXY} | sed -e 's|.*:\(.\+\)$|\1|'` \
+ && mkdir -p /home/${XRDP_USER}/.m2 \
  && printf "cat <<++EOS\n`cat /usr/local/src/mvn_settings_template.xml`\n++EOS\n" | sh > /home/${XRDP_USER}/.m2/settings.xml \
  && cd /usr/share/apache-maven/conf \
  && mv ./settings.xml ./settings.xml.original \

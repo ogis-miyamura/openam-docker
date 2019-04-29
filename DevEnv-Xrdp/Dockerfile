@@ -1,38 +1,31 @@
 FROM centos:7
-MAINTAINER ogis-miyamura
 
 STOPSIGNAL SIGRTMIN+3
 
-# Build parameters.
-ARG HTTP_PROXY
-ARG HTTPS_PROXY
-ARG http_proxy
-ARG https_proxy
-ARG NO_PROXY
 
-ARG XRDP_USER=${XRDP_USER:-xrdpuser}
-ARG XRDP_PASSWORD=${XRDP_PASSWORD:-P@ssw0rd}
+# ===== Build command examples =====
+#
+# docker build . -t devenv-xrdp-jdk8
+# docker build . -t devenv-xrdp-jdk11       --build-arg JDKVERSION=11
+# docker build . -t devenv-xrdp-jdk11-mvn35 --build-arg JDKVERSION=11 --build-arg MAVENVERSION=35
 
-ARG JENKINS_GIT_USER
-ARG JENKINS_GIT_MAIL
-ARG JDK_DEFAULT_VERSION
-ARG PHANTOMJS_PACKAGE
-ARG MAVEN_LOCALREPO_PATH
+# ===== Run command examples =====
+# sudo sed -ie "s/^SELINUX=enforcing$/SELINUX=disabled/g"
+# docker run -d --rm --privileged -p 13389:3389 -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name devenv-xrdp-jdk8 devenv-xrdp-jdk8
 
-# Set Maven yum repos.
-RUN \
-  curl \
-    -x ${HTTP_PROXY} \
-    -L http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo \
-    -o /etc/yum.repos.d/epel-apache-maven.repo \
- && sed -i s/\\\$releasever/7/g /etc/yum.repos.d/epel-apache-maven.repo
+# # Build parameters.
+# ARG HTTP_PROXY
+# ARG HTTPS_PROXY
+# ARG NO_PROXY
+
+
+# ===== Static step =====
 
 # Update and install packages.
 RUN \
-    echo "proxy=${HTTP_PROXY}" >> /etc/yum.conf \
+    yum update -y \
  && yum -y install \
       epel-release \
- && yum update -y \
  && yum groupinstall -y \
       "MATE Desktop" \
  && yum install -y \
@@ -42,46 +35,109 @@ RUN \
       unzip \
       bzip2 \
       git \
-      xrdp \
-      tigervnc-server \
-      expect \
- && yum install -y \
-      java-\${JDK_DEFAULT_VERSION}-openjdk \
-      java-\${JDK_DEFAULT_VERSION}-openjdk-devel \
-      apache-maven \
       make \
       gcc-c++ \
       nodejs \
       npm \
       python-pip \
- && pip install --proxy="${HTTP_PROXY/http:\/\//}" -U pip \
- && pip install --proxy="${HTTP_PROXY/http:\/\//}" -U awscli \
- && yum remove -y \
+      xrdp \
+      tigervnc-server \
+ && yum autoremove -y \
       mate-screensaver \
       NetworkManager \
  && rm -rf /var/cache/yum/* \
- && yum autoremove -y \
  && yum clean all
 
-# Install xrdp and tigervnc-server.
-RUN \
-    ln -s /usr/lib/systemd/system/xrdp.service \
-          /etc/systemd/system/multi-user.target.wants/xrdp.service
 
-# Create xrdp user.
+# ===== Install Maven =====
+
+ARG MAVENVERSION=33
+
+# Install Maven
+RUN yum install -y \
+      centos-release-scl \
+ && yum clean all
+RUN yum install -y \
+      rh-maven${MAVENVERSION} \
+ && yum clean all
+
+
+# ===== Install JDK =====
+
+ARG JDKVERSION=1.8.0
+
+# Install JDK
+RUN yum install -y \
+      java-${JDKVERSION}-openjdk-devel \
+ && yum clean all
+
+# Select specified version of JDK (and ignore warnings)
+RUN JDK_HOME=$(alternatives --list | grep java_sdk_${JDKVERSION} | head -1 | cut -f 3) \
+ && alternatives --set java  ${JDK_HOME}/bin/java  | true \
+ && alternatives --set javac ${JDK_HOME}/bin/javac | true \
+ && alternatives --set jar   ${JDK_HOME}/bin/jar   | true
+
+
+# Create user profile script
+RUN echo -e $"export LANG=C \n\
+export JAVA_HOME=/usr/lib/jvm/java-${JDKVERSION}-openjdk \n\
+source scl_source enable rh-maven${MAVENVERSION}" \
+    > /etc/profile.d/maven.sh
+
+
+# ===== Install Eclipse =====
+
 RUN \
-    sed -e 's/%wheel\(.*\)/#%wheel\1/g' \
+    cd /opt \
+ && curl \
+    -L http://ftp.fau.de/eclipse/technology/epp/downloads/release/2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz \
+    -o /opt/eclipse.tar.gz \
+ && tar -xvf eclipse.tar.gz \
+ && rm -f eclipse.tar.gz \
+ && ln -s /opt/eclipse/eclipse /usr/bin/eclipse
+
+
+# ===== Enable CentOS systemd =====
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+
+# ===== Create xrdp default user =====
+
+ARG XRDP_USER=${XRDP_USER:-xrdpuser}
+ARG XRDP_USER_PASSWORD=${XRDP_PASSWORD:-password}
+ARG XRDP_USER_MAIL=${XRDP_USER_MAIL:-xrdpuser@example.net}
+ARG XRDP_USER_ID=1000
+
+# Create XRDP_USER
+RUN \
+    echo "${XRDP_USER}:${XRDP_USER_PASSWORD}:${XRDP_USER_ID}:${XRDP_USER_ID}::/home/${XRDP_USER}:/bin/bash" | newusers \
+ && usermod -aG wheel ${XRDP_USER} \
+ && sed -e 's/%wheel\(.*\)/#%wheel\1/g' \
         -e 's/#.*%wheel\(.*\)NOPASSWD\(.*\)/%wheel\1NOPASSWD\2/g' \
         -i /etc/sudoers \
- && useradd -m ${XRDP_USER} -s /bin/bash \
- && gpasswd -a ${XRDP_USER} wheel \
- && printf "\
-set timeout -1\n\
-spawn passwd ${XRDP_USER}\n\
-expect \"New password:\" { send \"${XRDP_PASSWORD}\\\n\" }\n\
-expect \"Retype new password:\" { send \"${XRDP_PASSWORD}\\\n\" }\n\
-expect eof\n\
-" | expect
+ && echo -e $"#!/bin/bash \n\
+cd /home/${XRDP_USER} \n\
+source /etc/profile \n\
+source /etc/bashrc" \
+    > /home/${XRDP_USER}/.bashrc \
+ && chmod +x /home/${XRDP_USER}/.bashrc
+
+
+# Enable xrdp service.
+RUN \
+    ln -s /usr/lib/systemd/system/xrdp.service \
+          /etc/systemd/system/multi-user.target.wants/xrdp.service \
+ && systemctl enable xrdp
 
 # Install Mate desktop.
 RUN \
@@ -96,64 +152,10 @@ RUN \
  && cp /usr/local/src/gitconfig /root/.gitconfig \
  && cp /usr/local/src/gitconfig /home/${XRDP_USER}/.gitconfig
 
-# Make proxy setting template for Maven and insert to settings.xml.
-COPY DockerfileResources/mvn_settings_template.xml /usr/local/src/
-RUN \
-    export HTTP_PROXY_HOST=`echo \${HTTP_PROXY} | sed -e 's|.*//\(.\+\):.*|\1|'` \
- && export HTTP_PROXY_PORT=`echo \${HTTP_PROXY} | sed -e 's|.*:\(.\+\)$|\1|'` \
- && mkdir -p /home/${XRDP_USER}/.m2 \
- && printf "cat <<++EOS\n`cat /usr/local/src/mvn_settings_template.xml`\n++EOS\n" | sh > /home/${XRDP_USER}/.m2/settings.xml \
- && cd /usr/share/apache-maven/conf \
- && mv ./settings.xml ./settings.xml.original \
- && cp -f /home/${XRDP_USER}/.m2/settings.xml ./settings.xml \
- && sed -e "s/offline>true</offline>false</" ./settings.xml > ./settings.online.xml
-
-# Set proxy for npm.
-RUN \
-    npm -g config set proxy ${HTTP_PROXY} \
- && npm -g config set https-proxy ${HTTPS_PROXY} \
- && npm -g config set registry http://registry.npmjs.org/ \
- && npm -g install coffeescript marked node-pre-gyp
-
-# Install phantomjs from archive file.
-RUN \
-    cd /usr/local/src \
- && curl \
-    -x ${HTTP_PROXY} \
-    -L https://bitbucket.org/ariya/phantomjs/downloads/${PHANTOMJS_PACKAGE}.tar.bz2 \
-    -o /usr/local/src/${PHANTOMJS_PACKAGE}.tar.bz2 \
- && tar jxfv ${PHANTOMJS_PACKAGE}.tar.bz2 \
- && rm -f ${PHANTOMJS_PACKAGE}.tar.bz2 \
- && mv ${PHANTOMJS_PACKAGE} /usr/lib/ \
- && ln -s /usr/lib/${PHANTOMJS_PACKAGE}/bin/phantomjs /usr/bin/phantomjs
-
-# Install Eclipse.
-RUN \
-    cd /opt \
- && curl \
-    -x ${HTTP_PROXY} \
-    -L http://ftp.fau.de/eclipse/technology/epp/downloads/release/2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz \
-    -o /opt/eclipse.tar.gz \
- && tar -xvf eclipse.tar.gz \
- && rm -f eclipse.tar.gz \
- && ln -s /opt/eclipse/eclipse /usr/bin/eclipse
-
-# Install Eclipse Japanese plugin (Pleiades).
-RUN \
-    mkdir -p /opt/eclipse/dropins/pleiades \
- && cd /opt/eclipse/dropins/pleiades \
- && curl \
-    -x ${HTTP_PROXY} \
-    -L http://ftp.jaist.ac.jp/pub/mergedoc/pleiades/build/stable/pleiades.zip \
-    -o ./pleiades.zip \
- && unzip pleiades.zip \
- && rm -rf pleiades.zip
-    # - Disabled because Eclipse crashes on startup. -
-    #  && echo "-javaagent:/opt/eclipse/dropins/pleiades/plugins/jp.sourceforge.mergedoc.pleiades/pleiades.jar" \
-    #         >> /opt/eclipse/eclipse.ini
 
 # Create Applications-Eclipse shortcut.
 COPY DockerfileResources/apps_eclipse_template /usr/share/applications/eclipse.desktop
+
 
 # Stop Firewall service.
 RUN systemctl disable firewalld
@@ -164,4 +166,5 @@ EXPOSE 3389
 # Run initialize script.
 COPY DockerfileResources/*.sh /usr/local/src/
 RUN chmod +x /usr/local/src/*.sh
-CMD [ "sh", "/usr/local/src/initialize.sh" ]
+
+CMD ["/usr/sbin/init"]

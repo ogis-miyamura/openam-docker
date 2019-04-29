@@ -11,11 +11,6 @@ services:
       # - 16901:6901 # for VNC port.
     environment:
       - TZ=Asia/Tokyo
-      - NO_PROXY
-      - HTTP_PROXY
-      - HTTPS_PROXY
-      - http_proxy=${HTTP_PROXY}
-      - https_proxy=${HTTPS_PROXY}
       - JAVA_HOME=/etc/alternatives/java_sdk_openjdk
       - PHANTOMJS_BIN=/usr/bin/phantomjs
       - XRDP_USER=xrdpuser

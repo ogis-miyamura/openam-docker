@@ -65,7 +65,7 @@
 
             IMAGE_FROM='tomcat:8.0-jre8'
             SUDO_TOMCAT_CMD=''
-            OPENAM_PRECONFIGURE='y'
+            OPENAM_CONFIGURATION_MODE='PRE'
             CENTOS7_TOMCAT_MAJOR=
             CENTOS7_TOMCAT_VERSION=
             CENTOS7_JDK_VERSION=
@@ -74,7 +74,7 @@
             docker build \
                 --build-arg IMAGE_FROM=${IMAGE_FROM} \
                 --build-arg SUDO_TOMCAT_CMD=${SUDO_TOMCAT_CMD} \
-                --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE:-"n"} \
+                --build-arg OPENAM_CONFIGURATION_MODE=${OPENAM_CONFIGURATION_MODE:-"PRE"} \
                 --build-arg CENTOS7_TOMCAT_MAJOR=${CENTOS7_TOMCAT_MAJOR:-""} \
                 --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION:-""} \
                 --build-arg CENTOS7_JDK_VERSION=${CENTOS7_JDK_VERSION:-""} \
@@ -85,7 +85,7 @@
 
             IMAGE_FROM='centos:centos7'
             SUDO_TOMCAT_CMD='sudo -u tomcat '
-            OPENAM_PRECONFIGURE='y'
+            OPENAM_CONFIGURATION_MODE='PRE'
             CENTOS7_TOMCAT_MAJOR='8'
             CENTOS7_TOMCAT_VERSION='8.0.53'
             CENTOS7_JDK_VERSION='1.8.0'
@@ -94,7 +94,7 @@
             docker build \
                 --build-arg IMAGE_FROM=${IMAGE_FROM} \
                 --build-arg SUDO_TOMCAT_CMD=${SUDO_TOMCAT_CMD} \
-                --build-arg OPENAM_PRECONFIGURE=${OPENAM_PRECONFIGURE:-"n"} \
+                --build-arg OPENAM_CONFIGURATION_MODE=${OPENAM_CONFIGURATION_MODE:-"PRE"} \
                 --build-arg CENTOS7_TOMCAT_MAJOR=${CENTOS7_TOMCAT_MAJOR:-""} \
                 --build-arg CENTOS7_TOMCAT_VERSION=${CENTOS7_TOMCAT_VERSION:-""} \
                 --build-arg CENTOS7_JDK_VERSION=${CENTOS7_JDK_VERSION:-""} \

@@ -3,30 +3,81 @@
 # Docker build base arguments
 ARG IMAGE_FROM
 
-# OpenAM application parameters
-ARG OPENAM_VERSION
-ARG OPENAM_WAR_URL
-ARG OPENAM_CONFIGTOOL_NAME
-ARG OPENAM_CONFIGTOOL_URL
-
-
 FROM centos:centos7 as download-env
 
-
 # OpenAM application parameters
-ENV OPENAM_VERSION ${OPENAM_VERSION:-14.0.0-SNAPSHOT}
-ENV OPENAM_WAR_URL ${OPENAM_WAR_URL:-https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/OpenAM-${OPENAM_VERSION}.war}
-ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool-13.0.0-SNAPSHOT.zip}
-ENV OPENAM_CONFIGTOOL_URL ${OPENAM_CONFIGTOOL_URL:-https://github.com/ogis-miyamura/openam/releases/download/amjp%2F${OPENAM_VERSION}/${OPENAM_CONFIGTOOL_NAME}}
+ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool.jar}
 
-# Download OpenAM modules
+# Install basic packages
 RUN \
-    curl \
-      -L ${OPENAM_WAR_URL} \
-      -o /tmp/openam.war \
- && curl \
-      -L ${OPENAM_CONFIGTOOL_URL} \
-      -o /tmp/configurator-tool.zip
+    yum install -y \
+      sudo \
+      unzip \
+      bzip2 \
+      git \
+      gcc-c++ \
+      make \
+      centos-release-scl \
+ && yum clean all
+
+# Install Maven and create user profile script
+ENV MAVENVERSION 33
+
+RUN \
+    yum install -y \
+      rh-maven${MAVENVERSION} \
+ && yum clean all
+
+ENV JDKVERSION 1.8.0
+
+# Install JDK
+RUN \
+    yum install -y \
+      java-${JDKVERSION}-openjdk-devel \
+ && yum clean all
+
+RUN \
+    echo -e $"export LANG=C \n\
+export JAVA_HOME=/usr/lib/jvm/java-${JDKVERSION}-openjdk \n\
+source scl_source enable rh-maven${MAVENVERSION}" \
+    > /etc/profile.d/maven.sh
+
+# Build OpenAM
+RUN \
+    GIT_URL_PREFIX=https://github.com/openam-jp \
+ && GIT_BRANCH=master \
+ && source /etc/profile.d/maven.sh \
+ && for r in \
+        forgerock-parent \
+        forgerock-bom \
+        forgerock-build-tools \
+        forgerock-i18n-framework \
+        forgerock-guice \
+        forgerock-guava \
+        forgerock-ui \
+        forgerock-commons \
+        opendj-sdk \
+        forgerock-persistit \
+        opendj \
+        forgerock-bloomfilter \
+        openam \
+    ; do \
+        git clone --depth=1 ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
+        mvn install -DskipTests -f ${r}; \
+    done
+
+# Install Zip
+RUN \
+    yum install -y \
+      zip \
+ && yum clean all
+
+RUN \
+    find ./openam/openam-server -name *.war | xargs -I% mv % /tmp/openam.war \
+ && cp ./openam/openam-tools/openam-configurator-tool/target ./openam-configurator-tool \
+ && zip -r openam-configurator-tool.zip ./openam-configurator-tool/* \
+ && mv openam-configurator-tool.zip /tmp/
+
 
 
 # ===== Build target image =====
@@ -47,7 +98,6 @@ ARG CENTOS7_JDK_VERSION
 ARG CENTOS7_TOMCAT_URL
 
 # OpenAM application parameters
-ARG OPENAM_VERSION
 ARG OPENAM_CONFIGTOOL_NAME
 ARG OPENAM_CONFIGURATION_MODE
 
@@ -82,7 +132,7 @@ ENV CENTOS7_JDK_VERSION ${CENTOS7_JDK_VERSION}
 ENV CENTOS7_TOMCAT_URL ${CENTOS7_TOMCAT_URL:-https://archive.apache.org/dist/tomcat/tomcat-${CENTOS7_TOMCAT_MAJOR}/v${CENTOS7_TOMCAT_VERSION}/bin/apache-tomcat-${CENTOS7_TOMCAT_VERSION}.tar.gz}
 
 # OpenAM application parameters
-ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool-13.0.0-SNAPSHOT.zip}
+ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool.zip}
 
 # OpenAM server parameters
 # - format:   ${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}/${OPENAM_CONTEXT}/
@@ -148,15 +198,18 @@ RUN \
  && mkdir -p ${OPENAM_HOME}
 
 COPY --from=download-env /tmp/openam.war ${CATALINA_HOME}/webapps/${OPENAM_CONTEXT}.war
-COPY --from=download-env /tmp/configurator-tool.zip ${OPENAM_INSTALLATION_DIR}/${OPENAM_CONFIGTOOL_NAME}
+COPY --from=download-env /tmp/${OPENAM_CONFIGTOOL_NAME} ${OPENAM_INSTALLATION_DIR}/
+
+ENV OPENAM_CONFIGURATION_MODE ${OPENAM_CONFIGURATION_MODE:-NO}
 
 # Start OpenAM once and configure
 COPY scripts/configure_openam.sh ${OPENAM_INSTALLATION_DIR}/
 RUN \
-    if [ "${OPENAM_PRECONFIGURE}" = "y" ]; then \
+    chmod +x ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
+ && if [ "${OPENAM_CONFIGURATION_MODE^^}" = "PRE" ]; then \
         echo "INFO: Start OpenAM pre-configure" \
      && ${SUDO_TOMCAT_CMD} ${CATALINA_HOME}/bin/startup.sh \
-     && chmod +x ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
+     && ls -al ${OPENAM_INSTALLATION_DIR} \
      && ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
      && ${SUDO_TOMCAT_CMD} ${CATALINA_HOME}/bin/shutdown.sh \
     ; fi

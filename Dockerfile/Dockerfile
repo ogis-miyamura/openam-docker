@@ -12,6 +12,7 @@ ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool.ja
 RUN \
     yum install -y \
       sudo \
+      zip \
       unzip \
       bzip2 \
       git \
@@ -66,17 +67,12 @@ RUN \
         mvn install -DskipTests -f ${r}; \
     done
 
-# Install Zip
-RUN \
-    yum install -y \
-      zip \
- && yum clean all
-
+# Stash openam.war and configurator-tool
 RUN \
     find ./openam/openam-server -name *.war | xargs -I% mv % /tmp/openam.war \
- && cp ./openam/openam-tools/openam-configurator-tool/target ./openam-configurator-tool \
- && zip -r openam-configurator-tool.zip ./openam-configurator-tool/* \
- && mv openam-configurator-tool.zip /tmp/
+ && cp -rp ./openam/openam-tools/openam-configurator-tool/target /tmp/openam-configurator-tool \
+ && cd /tmp \
+ && zip -r openam-configurator-tool.zip ./openam-configurator-tool/*
 
 
 

@@ -10,7 +10,7 @@ STOPSIGNAL SIGRTMIN+3
 # docker build . -t devenv-xrdp-jdk11-mvn35 --build-arg JDKVERSION=11 --build-arg MAVENVERSION=35
 
 # ===== Run command examples =====
-# sudo sed -ie "s/^SELINUX=enforcing$/SELINUX=disabled/g"
+# sudo sed -ie "s/^SELINUX=enforcing$/SELINUX=disabled/g" /etc/selinux/config
 # docker run -d --rm --privileged -p 13389:3389 -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name devenv-xrdp-jdk8 devenv-xrdp-jdk8
 
 # # Build parameters.
@@ -157,10 +157,10 @@ RUN \
 COPY DockerfileResources/apps_eclipse_template /usr/share/applications/eclipse.desktop
 
 
-# Stop Firewall service.
-RUN systemctl disable firewalld
-
-# Expose RDP port.
+# Open and expose XRDP port.
+RUN \
+    firewall-cmd --permanent --zone=public --add-port=3389/tcp \
+ && firewall-cmd --reload
 EXPOSE 3389
 
 # Run initialize script.

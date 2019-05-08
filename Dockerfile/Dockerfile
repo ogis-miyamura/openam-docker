@@ -6,7 +6,7 @@ ARG IMAGE_FROM
 FROM centos:centos7 as download-env
 
 # OpenAM application parameters
-ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool.jar}
+ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool.zip}
 
 # Install basic packages
 RUN \
@@ -72,7 +72,7 @@ RUN \
     find ./openam/openam-server -name *.war | xargs -I% mv % /tmp/openam.war \
  && cp -rp ./openam/openam-tools/openam-configurator-tool/target /tmp/openam-configurator-tool \
  && cd /tmp \
- && zip -r openam-configurator-tool.zip ./openam-configurator-tool/*
+ && zip -r ${OPENAM_CONFIGTOOL_NAME} ./openam-configurator-tool/*
 
 
 
@@ -94,7 +94,6 @@ ARG CENTOS7_JDK_VERSION
 ARG CENTOS7_TOMCAT_URL
 
 # OpenAM application parameters
-ARG OPENAM_CONFIGTOOL_NAME
 ARG OPENAM_CONFIGURATION_MODE
 
 
@@ -104,7 +103,6 @@ ARG OPENAM_HOSTNAME
 ARG OPENAM_PROTOCOL
 ARG OPENAM_PORT
 ARG OPENAM_CONTEXT
-ARG OPENAM_URL
 ARG OPENAM_COOKIE_DOMAIN
 ARG OPENAM_ROOT_SUFFIX
 ARG OPENAM_HOME
@@ -131,13 +129,10 @@ ENV CENTOS7_TOMCAT_URL ${CENTOS7_TOMCAT_URL:-https://archive.apache.org/dist/tom
 ENV OPENAM_CONFIGTOOL_NAME ${OPENAM_CONFIGTOOL_NAME:-openam-configurator-tool.zip}
 
 # OpenAM server parameters
-# - format:   ${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}/${OPENAM_CONTEXT}/
-# - example:  http://openam.example.com:8080/openam/
 ENV OPENAM_HOSTNAME ${OPENAM_HOSTNAME:-openam.example.com}
 ENV OPENAM_PROTOCOL ${OPENAM_PROTOCOL:-http}
 ENV OPENAM_PORT ${OPENAM_PORT:-8080}
 ENV OPENAM_CONTEXT ${OPENAM_CONTEXT:-openam}
-ENV OPENAM_URL ${OPENAM_URL:-${OPENAM_PROTOCOL}://${OPENAM_HOSTNAME}:${OPENAM_PORT}}
 ENV OPENAM_COOKIE_DOMAIN ${OPENAM_COOKIE_DOMAIN:-.example.com}
 ENV OPENAM_ROOT_SUFFIX ${OPENAM_ROOT_SUFFIX:-dc=openam,dc=example,dc=com}
 ENV OPENAM_HOME ${OPENAM_HOME:-/opt/openam}

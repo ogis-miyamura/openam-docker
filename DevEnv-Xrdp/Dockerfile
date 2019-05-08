@@ -3,25 +3,9 @@ FROM centos:7
 STOPSIGNAL SIGRTMIN+3
 
 
-# ===== Build command examples =====
-#
-# docker build . -t devenv-xrdp-jdk8
-# docker build . -t devenv-xrdp-jdk11       --build-arg JDKVERSION=11
-# docker build . -t devenv-xrdp-jdk11-mvn35 --build-arg JDKVERSION=11 --build-arg MAVENVERSION=35
-
-# ===== Run command examples =====
-# sudo sed -ie "s/^SELINUX=enforcing$/SELINUX=disabled/g" /etc/selinux/config
-# docker run -d --rm --privileged -p 13389:3389 -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name devenv-xrdp-jdk8 devenv-xrdp-jdk8
-
-# # Build parameters.
-# ARG HTTP_PROXY
-# ARG HTTPS_PROXY
-# ARG NO_PROXY
-
-
 # ===== Static step =====
 
-# Update and install packages.
+# Update and install packages
 RUN \
     yum update -y \
  && yum -y install \
@@ -57,6 +41,7 @@ ARG MAVENVERSION=33
 RUN yum install -y \
       centos-release-scl \
  && yum clean all
+
 RUN yum install -y \
       rh-maven${MAVENVERSION} \
  && yum clean all

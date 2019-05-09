@@ -61,7 +61,7 @@ _EOT_
 
     echo "127.0.0.1 ${OPENAM_HOSTNAME}" >> /etc/hosts
     java \
-        -jar $(ls ${CONFIGURATION_TOOL}/openam-configurator-tool*.jar) \
+        -jar $(ls ${CONFIGURATION_TOOL}*/openam-configurator-tool*.jar) \
         --file ${CONFIGURATION_PARAMS} \
         --acceptLicense \
       > ${OPENAM_HOME}/install.log

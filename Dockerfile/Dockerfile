@@ -74,6 +74,13 @@ RUN \
  && cd /tmp \
  && zip -r ${OPENAM_CONFIGTOOL_NAME} ./openam-configurator-tool/*
 
+# Download and stash openam.war and configurator-tool
+# RUN \
+#     curl -L OpenAM-14.0.0-SNAPSHOT.war \
+#         -o /tmp/openam.war
+# RUN \
+#     curl -L openam-configurator-tool-14.0.0-SNAPSHOT.zip \
+#         -o /tmp/${OPENAM_CONFIGTOOL_NAME}
 
 
 # ===== Build target image =====
@@ -197,7 +204,7 @@ ENV OPENAM_CONFIGURATION_MODE ${OPENAM_CONFIGURATION_MODE:-NO}
 COPY scripts/configure_openam.sh ${OPENAM_INSTALLATION_DIR}/
 RUN \
     chmod +x ${OPENAM_INSTALLATION_DIR}/configure_openam.sh \
- && if [ "${OPENAM_CONFIGURATION_MODE^^}" = "PRE" ]; then \
+ && if [ "${OPENAM_CONFIGURATION_MODE}" = "PRE" ]; then \
         echo "INFO: Start OpenAM pre-configure" \
      && ${SUDO_TOMCAT_CMD} ${CATALINA_HOME}/bin/startup.sh \
      && ls -al ${OPENAM_INSTALLATION_DIR} \

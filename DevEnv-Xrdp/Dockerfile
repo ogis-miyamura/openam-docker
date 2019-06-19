@@ -139,7 +139,7 @@ ARG XRDP_PASSWORD=${XRDP_PASSWORD:-password}
 ARG XRDP_USER_EMAIL=${XRDP_USER_EMAIL:-xrdpuser@example.net}
 
 RUN \
-    echo "${XRDP_USER}:${XRDP_USER_PASSWORD}:${XRDP_USER_ID}:${XRDP_USER_ID}::/home/${XRDP_USER}:/bin/bash" | newusers \
+    echo "${XRDP_USER}:${XRDP_PASSWORD}:${XRDP_USER_ID}:${XRDP_USER_ID}::/home/${XRDP_USER}:/bin/bash" | newusers \
  && usermod -aG wheel ${XRDP_USER} \
  && sed -e 's/%wheel\(.*\)/#%wheel\1/g' \
         -e 's/#.*%wheel\(.*\)NOPASSWD\(.*\)/%wheel\1NOPASSWD\2/g' \
@@ -202,7 +202,8 @@ export CATALINA_BASE=/opt/tomcat${TOMCATVERSION}" \
 
 # Create OpenAM context
 RUN \
-    mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost \
+    source /etc/profile.d/tomcat.sh \
+ && mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost \
  && echo -e '<Context \n\
   path="/openam" \n\
   docBase="/opt/openam/" \n\
@@ -231,8 +232,8 @@ RUN \
  && cp /usr/local/src/gitconfig /home/${XRDP_USER}/.gitconfig \
  && case ${HTTP_PROXY} in \
         http* ) \
-            git config --global http.proxy ${HTTP_PROXY} \
-            git config --global https.proxy ${HTTP_PROXY} \
+            git config --global http.proxy ${HTTP_PROXY}; \
+            git config --global https.proxy ${HTTP_PROXY}; \
             ;; \
     esac
 

@@ -8,15 +8,15 @@ services:
       # 'args' can use only building.
       args:
         - HTTP_PROXY
-        - HTTPS_PROXY
         - NO_PROXY
         - XRDP_USER=xrdpuser
-        - XRDP_PASSWORD=P@ssw0rd
-        - JENKINS_GIT_USER=Jenkins Admin
-        - JENKINS_GIT_MAIL=jenkins_admin@example.com
-        - JDK_DEFAULT_VERSION=1.8.0
-        - PHANTOMJS_PACKAGE=phantomjs-2.1.1-linux-x86_64
-        - MAVEN_LOCALREPO_PATH=/home/xrdpuser/.m2/project-repository/Branch_openam-14.0.0-SNAPSHOT_13.5.0_tswam-5.1.1
+        - XRDP_PASSWORD=password
+        - XRDP_USER_EMAIL=xrdpuser@example.net
+        - JDKVERSION=1.8.0
+        - MAVENVERSION=33
+        - ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
+        - TOMCATVERSION=90
+        - TOMCAT_PACKAGE=tomcat-9/v9.0.21/bin/apache-tomcat-9.0.21.tar.gz
 
   # usage:
   #

@@ -2,6 +2,6 @@
         insteadOf = git://
 [user]
         name = ${XRDP_USER}
-        email = ${XRDP_USER_MAIL}
+        email = ${XRDP_USER_EMAIL}
 [credential]
         UseHttpPath = true

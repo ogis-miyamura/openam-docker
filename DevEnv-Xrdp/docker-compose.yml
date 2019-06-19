@@ -6,16 +6,13 @@ services:
     container_name: devenv-xrdp
     hostname: devenv-xrdp
     ports:
-      - 13389:3389 # for RDP port.
-      # - 15901:5901 # for VNC port.
-      # - 16901:6901 # for VNC port.
+      - 13389:3389  # for RDP port.
     environment:
       - TZ=Asia/Tokyo
-      - JAVA_HOME=/etc/alternatives/java_sdk_openjdk
-      - PHANTOMJS_BIN=/usr/bin/phantomjs
-      - XRDP_USER=xrdpuser
+      - HTTP_PROXY
+      - NO_PROXY
+
     volumes:
-      - /usr/local/src/maven-cache:/home/xrdpuser/.m2/
       - ./devenv_eclipse-workspace:/home/xrdpuser/eclipse-workspace
     privileged: true
     restart: unless-stopped

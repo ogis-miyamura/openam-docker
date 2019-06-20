@@ -218,7 +218,17 @@ RUN \
 # ===== Install AWS CLI =====
 
 RUN \
-    curl -x ${HTTP_PROXY} "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip" \
+    case ${HTTP_PROXY} in \
+        http* ) \
+            curl \
+              -x ${HTTP_PROXY} \
+              -LO https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip \
+            ;; \
+        * ) \
+            curl \
+              -LO https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip \
+            ;; \
+    esac \
  && unzip awscli-bundle.zip \
  && ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
 

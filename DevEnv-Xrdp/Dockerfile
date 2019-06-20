@@ -99,7 +99,7 @@ RUN \
               -x ${HTTP_PROXY} \
               -LO http://ftp.fau.de/eclipse/technology/epp/downloads/release/${ECLIPSE_PACKAGE} \
             ;; \
-        default ) \
+        * ) \
             curl \
               -LO http://ftp.fau.de/eclipse/technology/epp/downloads/release/${ECLIPSE_PACKAGE} \
             ;; \
@@ -185,7 +185,7 @@ RUN \
               -x ${HTTP_PROXY} \
               -LO http://ftp.tsukuba.wide.ad.jp/software/apache/tomcat/${TOMCAT_PACKAGE} \
             ;; \
-        default ) \
+        * ) \
             curl \
               -LO http://ftp.tsukuba.wide.ad.jp/software/apache/tomcat/${TOMCAT_PACKAGE} \
             ;; \

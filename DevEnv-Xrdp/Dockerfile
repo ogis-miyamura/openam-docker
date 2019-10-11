@@ -81,13 +81,15 @@ RUN \
  && alternatives --set jar   ${JDK_HOME}/bin/jar   | true
 
 
+# ===== Build OpenAM =====
+
 # Create user profile script
 RUN echo -e $"export LANG=C \n\
 export JAVA_HOME=/usr/lib/jvm/java-${JDKVERSION}-openjdk \n\
 source scl_source enable rh-maven${MAVENVERSION}" \
     > /etc/profile.d/maven.sh
 
-
+# Clone OpenAM source codes and build
 RUN \
     GIT_URL_PREFIX=https://github.com/openam-jp \
  && GIT_BRANCH=master \
@@ -249,20 +251,6 @@ RUN \
     echo -e $"export CATALINA_HOME=/opt/tomcat${TOMCATVERSION} \n\
 export CATALINA_BASE=/opt/tomcat${TOMCATVERSION}" \
     > /etc/profile.d/tomcat.sh
-
-# Create OpenAM context
-RUN \
-    source /etc/profile.d/tomcat.sh \
- && mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost \
- && echo -e '<Context \n\
-  path="/openam" \n\
-  docBase="/opt/openam/" \n\
-  reloadable="true" \n\
-  crossContext="true" \n\
-  antiJARLocking="true" \n\
-  antiResourceLocking="true" \n\
-  />' \
-    > ${CATALINA_HOME}/conf/Catalina/localhost/openam.xml
 
 
 # ===== Install AWS CLI =====

@@ -111,7 +111,7 @@ RUN \
         forgerock-bloomfilter \
         openam \
     ; do \
-        git clone --depth=1 ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
+        git clone ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
         mvn install -DskipTests -f ${r}; \
     done
 

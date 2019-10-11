@@ -36,8 +36,7 @@ RUN \
       bzip2 \
       git \
       gcc-c++ \
-      nodejs \
-      npm \
+      make \
       xrdp \
       tigervnc-server \
  && yum autoremove -y \

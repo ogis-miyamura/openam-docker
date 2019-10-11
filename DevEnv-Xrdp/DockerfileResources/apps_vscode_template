@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=VS Code
+Exec=/usr/bin/vscode
+Terminal=false
+Comment=Visual Studio Code IDE
+Type=Application
+Encoding=UTF-8
+Icon=/opt/eclipse/icon.xpm
+Categories=GNOME;Application;Development;
+StartupNotify=true

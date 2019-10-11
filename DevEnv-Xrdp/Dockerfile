@@ -64,6 +64,7 @@ RUN \
 # ===== Install JDK =====
 
 ARG JDKVERSION=1.8.0
+ARG WORKDIR=/home/xrdpuser/work
 
 # Install JDK
 RUN \
@@ -87,6 +88,32 @@ source scl_source enable rh-maven${MAVENVERSION}" \
     > /etc/profile.d/maven.sh
 
 
+RUN \
+    GIT_URL_PREFIX=https://github.com/openam-jp \
+ && GIT_BRANCH=master \
+ && source /etc/profile.d/maven.sh \
+ && mkdir -p ${WORKDIR} \
+ && cd ${WORKDIR} \
+ && for r in \
+        forgerock-parent \
+        forgerock-bom \
+        forgerock-build-tools \
+        forgerock-i18n-framework \
+        forgerock-guice \
+        forgerock-guava \
+        forgerock-ui \
+        forgerock-commons \
+        opendj-sdk \
+        forgerock-persistit \
+        opendj \
+        forgerock-bloomfilter \
+        openam \
+    ; do \
+        git clone --depth=1 ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
+        mvn install -DskipTests -f ${r}; \
+    done
+
+
 # ===== Install Eclipse =====
 
 ARG ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
@@ -108,6 +135,29 @@ RUN \
  && rm -f $(ls eclipse-*.tar.gz) \
  && ln -s /opt/eclipse/eclipse /usr/bin/eclipse \
  && cp /usr/local/src/apps_eclipse_template /usr/share/applications/eclipse.desktop
+
+
+# ===== Install VS Code =====
+
+ARG VSCODE_PACKAGE=https://go.microsoft.com/fwlink/?LinkID=620884
+
+RUN \
+    cd /opt \
+ && case ${HTTP_PROXY} in \
+        http* ) \
+            curl \
+              -x ${HTTP_PROXY} \
+              -LO ${VSCODE_PACKAGE} \
+            ;; \
+        * ) \
+            curl \
+              -LO ${VSCODE_PACKAGE} \
+            ;; \
+    esac \
+ && tar -xvf $(ls code-*.tar.gz) \
+ && rm -f $(ls code-*.tar.gz) \
+ && ln -s /opt/VSCode-linux-x64/bin/code /usr/bin/vscode \
+ && cp /usr/local/src/apps_vscode_template /usr/share/applications/vscode.desktop
 
 
 # ===== Enable CentOS systemd =====

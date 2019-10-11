@@ -7,12 +7,11 @@ services:
     hostname: devenv-xrdp
     ports:
       - 13389:3389  # for RDP port.
+      - 18080:8080  # for Tomcat port.
     environment:
       - TZ=Asia/Tokyo
       - HTTP_PROXY
       - NO_PROXY
 
-    volumes:
-      - ./devenv_eclipse-workspace:/home/xrdpuser/eclipse-workspace
     privileged: true
     restart: unless-stopped

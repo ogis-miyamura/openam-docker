@@ -27,13 +27,14 @@ RUN \
     yum update -y \
  && yum -y install \
       epel-release \
-      xrdp \
-      tigervnc-server \
  && yum groupinstall -y \
       "MATE Desktop" \
  && yum autoremove -y \
       mate-screensaver \
       NetworkManager \
+ && yum install -y \
+      xrdp \
+      tigervnc-server \
  && yum install -y \
       sudo \
       bash \

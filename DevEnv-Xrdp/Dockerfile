@@ -38,6 +38,7 @@ RUN \
       git \
       gcc-c++ \
       make \
+      centos-release-scl \
       xrdp \
       tigervnc-server \
  && yum autoremove -y \
@@ -54,8 +55,6 @@ ARG MAVENVERSION=33
 # Install Maven
 RUN \
     yum install -y \
-      centos-release-scl \
- && yum install -y \
       rh-maven${MAVENVERSION} \
  && rm -rf /var/cache/yum/* \
  && yum clean all

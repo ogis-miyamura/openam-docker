@@ -19,6 +19,7 @@ RUN \
       gcc-c++ \
       make \
       centos-release-scl \
+ && rm -rf /var/cache/yum/* \
  && yum clean all
 
 # Install Maven and create user profile script
@@ -27,6 +28,7 @@ ENV MAVENVERSION 33
 RUN \
     yum install -y \
       rh-maven${MAVENVERSION} \
+ && rm -rf /var/cache/yum/* \
  && yum clean all
 
 ENV JDKVERSION 1.8.0
@@ -35,6 +37,7 @@ ENV JDKVERSION 1.8.0
 RUN \
     yum install -y \
       java-${JDKVERSION}-openjdk-devel \
+ && rm -rf /var/cache/yum/* \
  && yum clean all
 
 RUN \

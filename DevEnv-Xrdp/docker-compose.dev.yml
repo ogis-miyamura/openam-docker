@@ -16,7 +16,8 @@ services:
         - MAVENVERSION=33
         - ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
         - TOMCATVERSION=90
-        - TOMCAT_PACKAGE=tomcat-9/v9.0.21/bin/apache-tomcat-9.0.21.tar.gz
+        - TOMCAT_PACKAGE=tomcat-9/v9.0.26/bin/apache-tomcat-9.0.26.tar.gz
+        - TOMCAT_DOWNLOAD_HOST=https://archive.apache.org/dist/tomcat
 
   # usage:
   #

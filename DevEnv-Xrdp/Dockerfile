@@ -9,7 +9,8 @@ ENV container docker
 
 COPY DockerfileResources /usr/local/src/
 RUN \
-    chmod +x /usr/local/src/*.sh
+    chmod +x /usr/local/src/*.sh \
+ && eval "echo \"$(cat /usr/local/src/initialize.sh)\"" > /usr/local/src/initialize.sh
 
 
 # ===== Install packages =====
@@ -141,6 +142,7 @@ RUN \
 # ===== Install VS Code =====
 
 ARG VSCODE_PACKAGE=https://go.microsoft.com/fwlink/?LinkID=620884
+ARG VSCODE_ARCHIVE=vscode.tar.gz
 
 RUN \
     cd /opt \
@@ -148,15 +150,15 @@ RUN \
         http* ) \
             curl \
               -x ${HTTP_PROXY} \
-              -LO ${VSCODE_PACKAGE} \
+              -L ${VSCODE_PACKAGE} -o ${VSCODE_ARCHIVE} \
             ;; \
         * ) \
             curl \
-              -LO ${VSCODE_PACKAGE} \
+              -L ${VSCODE_PACKAGE} -o ${VSCODE_ARCHIVE} \
             ;; \
     esac \
- && tar -xvf $(ls code-*.tar.gz) \
- && rm -f $(ls code-*.tar.gz) \
+ && tar -xvf ${VSCODE_ARCHIVE} \
+ && rm -f ${VSCODE_ARCHIVE} \
  && ln -s /opt/VSCode-linux-x64/bin/code /usr/bin/vscode \
  && cp /usr/local/src/apps_vscode_template /usr/share/applications/vscode.desktop
 
@@ -226,7 +228,8 @@ RUN \
 # ===== Install Tomcat =====
 
 ARG TOMCATVERSION=90
-ARG TOMCAT_PACKAGE=tomcat-9/v9.0.21/bin/apache-tomcat-9.0.21.tar.gz
+ARG TOMCAT_PACKAGE=tomcat-9/v9.0.26/bin/apache-tomcat-9.0.26.tar.gz
+ARG TOMCAT_DOWNLOAD_HOST=https://archive.apache.org/dist/tomcat
 
 RUN \
     cd /opt \
@@ -234,11 +237,11 @@ RUN \
         http* ) \
             curl \
               -x ${HTTP_PROXY} \
-              -LO http://ftp.tsukuba.wide.ad.jp/software/apache/tomcat/${TOMCAT_PACKAGE} \
+              -LO ${TOMCAT_DOWNLOAD_HOST}/${TOMCAT_PACKAGE} \
             ;; \
         * ) \
             curl \
-              -LO http://ftp.tsukuba.wide.ad.jp/software/apache/tomcat/${TOMCAT_PACKAGE} \
+              -LO ${TOMCAT_DOWNLOAD_HOST}/${TOMCAT_PACKAGE} \
             ;; \
     esac \
  && tar xzf $(ls apache-tomcat-*.tar.gz) \

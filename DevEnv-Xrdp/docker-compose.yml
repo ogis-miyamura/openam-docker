@@ -5,6 +5,7 @@ services:
     image: devenv-xrdp
     container_name: devenv-xrdp
     hostname: devenv-xrdp
+    user: "1000:1000"
     ports:
       - 13389:3389  # for RDP port.
       - 18080:8080  # for Tomcat port.

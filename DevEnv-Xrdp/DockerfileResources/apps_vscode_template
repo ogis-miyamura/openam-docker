@@ -5,6 +5,6 @@ Terminal=false
 Comment=Visual Studio Code IDE
 Type=Application
 Encoding=UTF-8
-Icon=/opt/eclipse/icon.xpm
+Icon=/opt/VSCode-linux-x64/resources/app/resources/linux/code.png
 Categories=GNOME;Application;Development;
 StartupNotify=true

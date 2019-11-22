@@ -5,7 +5,7 @@
         docker run \
             -d \
             --rm \
-            --privileged \
+            --cap-add=SYS_ADMIN \
             -p 13389:3389 \
             -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
             --name devenv-xrdp-jdk8 \
@@ -16,7 +16,7 @@
         docker run \
             -d \
             --rm \
-            --privileged \
+            --cap-add=SYS_ADMIN \
             -p 13389:3389 \
             -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
             --name devenv-xrdp-jdk8 \

@@ -17,7 +17,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| アクセスURL | http://openam.example.com:18080/sso/XUI/#login/ |
+| アクセスURL | http://openam.example.com:18080/openam/XUI/#login/ |
 | 管理者ID | amadmin |
 | 管理者Password | adM1npassword |
 
@@ -56,10 +56,11 @@
                 --rm \
                 -p 18080:8080 \
                 --name openam \
+                --add-host openam.example.com \
                 -e OPENAM_CONFIGURATION_MODE=POST \
-                -e OPENAM_HOSTNAME=sso.XXXXXX.co.jp \
-                -e OPENAM_COOKIE_DOMAIN=.XXXXXX.co.jp \
-                -e OPENAM_ROOT_SUFFIX='dc=sso,dc=XXXXXX,dc=co,dc=jp' \
+                -e OPENAM_HOSTNAME=openam.example.com \
+                -e OPENAM_COOKIE_DOMAIN=.example.com \
+                -e OPENAM_ROOT_SUFFIX='dc=openam,dc=example,dc=com' \
                 -e OPENAM_ADMIN_PASSWORD=YYYYYY \
                 -e OPENAM_LDAPADMIN_PASSWORD=ZZZZZZ \
                 ogismiyamura/openam:cent7-tomcat85
@@ -77,7 +78,6 @@
 
         docker run -d \
                 --name openam \
-                --privileged \
                 --rm \
                 -p 18080:8080 \
                 ogismiyamura/openam:cent7-tomcat85
@@ -89,7 +89,7 @@
 - 特権オプションが必要となり、安全性が比較的低くなります
 - コンテナ起動コマンドに以下のオプションを追加します（`/sbin/init` は末尾に記述します）
 
-        --privileged
+        --cap-add=SYS_ADMIN
         -v /sys/fs/cgroup:/sys/fs/cgroup:ro
         /sbin/init
 
@@ -99,7 +99,7 @@
                 --rm \
                 -p 18080:8080 \
                 --name openam \
-                --privileged \
+                --cap-add=SYS_ADMIN \
                 -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
                 ogismiyamura/openam:cent7-tomcat85-trial \
                 /sbin/init

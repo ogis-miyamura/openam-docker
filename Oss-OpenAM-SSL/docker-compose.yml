@@ -1,0 +1,20 @@
+version: "2"
+services:
+
+  oss-openam-master:
+    image: tomcat:9.0-jdk8
+    hostname: openam.example.net
+    domainname: example.net
+    extra_hosts:
+      - "openam.example.net:127.0.0.1"
+    ports:
+      - "80:8080"
+      - "443:8443"
+      - "50389:50389"
+    volumes:
+      - /dev/urandom:/dev/random
+      - ./ssl:/usr/local/tomcat/ssl
+      - ./server.xml:/usr/local/tomcat/conf/server.xml
+      - ./openam.war:/usr/local/tomcat/webapps/openam.war
+
+    restart: unless-stopped

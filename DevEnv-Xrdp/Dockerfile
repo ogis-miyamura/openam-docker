@@ -64,7 +64,7 @@ RUN \
 # ===== Install JDK =====
 
 ARG JDKVERSION=1.8.0
-ARG WORKDIR=/home/xrdpuser/work
+ARG WORKDIR=/home/xrdpuser/eclipse-workspace
 
 # Install JDK
 RUN \
@@ -191,17 +191,16 @@ source scl_source enable rh-maven${MAVENVERSION}" \
     > /etc/profile.d/maven.sh
 
 # Clone OpenAM source codes and build
-RUN \
-    GIT_URL_PREFIX=https://github.com/openam-jp \
- && GIT_BRANCH=master \
- && source /etc/profile.d/maven.sh \
- && mkdir -p ${WORKDIR} \
- && chown -R ${XRDP_USER}:${XRDP_USER} ${WORKDIR}
 
 USER ${XRDP_USER}
 
 RUN \
-    cd ${WORKDIR} \
+    GIT_URL_PREFIX=https://github.com/openam-jp \
+ && GIT_BRANCH=master \
+ && sudo mkdir -p ${WORKDIR} \
+ && sudo chown -R ${XRDP_USER}:${XRDP_USER} ${WORKDIR} \
+ && cd ${WORKDIR} \
+ && source /etc/profile.d/maven.sh \
  && for r in \
         forgerock-parent \
         forgerock-bom \

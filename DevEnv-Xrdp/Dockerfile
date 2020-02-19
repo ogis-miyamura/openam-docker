@@ -81,41 +81,6 @@ RUN \
  && alternatives --set jar   ${JDK_HOME}/bin/jar   | true
 
 
-# ===== Build OpenAM =====
-
-# Create user profile script
-RUN echo -e $"export LANG=C \n\
-export JAVA_HOME=/usr/lib/jvm/java-${JDKVERSION}-openjdk \n\
-source scl_source enable rh-maven${MAVENVERSION}" \
-    > /etc/profile.d/maven.sh
-
-# Clone OpenAM source codes and build
-RUN \
-    GIT_URL_PREFIX=https://github.com/openam-jp \
- && GIT_BRANCH=master \
- && source /etc/profile.d/maven.sh \
- && mkdir -p ${WORKDIR} \
- && cd ${WORKDIR} \
- && for r in \
-        forgerock-parent \
-        forgerock-bom \
-        forgerock-build-tools \
-        forgerock-i18n-framework \
-        forgerock-guice \
-        forgerock-guava \
-        forgerock-ui \
-        forgerock-commons \
-        opendj-sdk \
-        forgerock-persistit \
-        opendj \
-        forgerock-bloomfilter \
-        openam \
-    ; do \
-        git clone ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
-        mvn install -DskipTests -f ${r}; \
-    done
-
-
 # ===== Install Eclipse =====
 
 ARG ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
@@ -217,12 +182,58 @@ RUN \
     esac
 
 
-# ===== Install Mate desktop =====
+# ===== Clone OpenAM source codes =====
+
+# Create user profile script
+RUN echo -e $"export LANG=C \n\
+export JAVA_HOME=/usr/lib/jvm/java-${JDKVERSION}-openjdk \n\
+source scl_source enable rh-maven${MAVENVERSION}" \
+    > /etc/profile.d/maven.sh
+
+# Clone OpenAM source codes and build
+RUN \
+    GIT_URL_PREFIX=https://github.com/openam-jp \
+ && GIT_BRANCH=master \
+ && source /etc/profile.d/maven.sh \
+ && mkdir -p ${WORKDIR} \
+ && chown -R ${XRDP_USER}:${XRDP_USER} ${WORKDIR}
+
+USER ${XRDP_USER}
+
+RUN \
+    cd ${WORKDIR} \
+ && for r in \
+        forgerock-parent \
+        forgerock-bom \
+        forgerock-build-tools \
+        forgerock-i18n-framework \
+        forgerock-guice \
+        forgerock-guava \
+        forgerock-ui \
+        forgerock-commons \
+        opendj-sdk \
+        forgerock-persistit \
+        opendj \
+        forgerock-bloomfilter \
+        openam \
+    ; do \
+        git clone ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
+        mvn install -DskipTests -f ${r}; \
+    done
+
+USER root
+
+
+# ===== Configure Mate desktop =====
+
+USER ${XRDP_USER}
 
 RUN \
     echo "mate-session" > /home/${XRDP_USER}/.Xclients \
  && chmod a+x /home/${XRDP_USER}/.Xclients \
- && chown ${XRDP_USER}:${XRDP_USER} /home/${XRDP_USER}/.Xclients
+ && echo "mate-session" > /home/${XRDP_USER}/.Xauthority
+
+USER root
 
 
 # ===== Install Tomcat =====
@@ -276,6 +287,8 @@ RUN \
 # ===== Set up develop environment =====
 
 # Create .gitconfig.
+USER ${XRDP_USER}
+
 RUN \
     printf "cat <<++EOS\n`cat /usr/local/src/gitconfig_template`\n++EOS\n" | sh > /usr/local/src/gitconfig \
  && cp /usr/local/src/gitconfig /root/.gitconfig \
@@ -286,6 +299,9 @@ RUN \
             git config --global https.proxy ${HTTP_PROXY}; \
             ;; \
     esac
+
+USER root
+
 
 # Set proxy for npm.
 RUN \

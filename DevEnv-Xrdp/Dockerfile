@@ -286,20 +286,17 @@ RUN \
 # ===== Set up develop environment =====
 
 # Create .gitconfig.
-USER ${XRDP_USER}
-
 RUN \
     printf "cat <<++EOS\n`cat /usr/local/src/gitconfig_template`\n++EOS\n" | sh > /usr/local/src/gitconfig \
  && cp /usr/local/src/gitconfig /root/.gitconfig \
  && cp /usr/local/src/gitconfig /home/${XRDP_USER}/.gitconfig \
+ && chown ${XRDP_USER}:${XRDP_USER} /home/${XRDP_USER}/.gitconfig \
  && case ${HTTP_PROXY} in \
         http* ) \
             git config --global http.proxy ${HTTP_PROXY}; \
             git config --global https.proxy ${HTTP_PROXY}; \
             ;; \
     esac
-
-USER root
 
 
 # Set proxy for npm.

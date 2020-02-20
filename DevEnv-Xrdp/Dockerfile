@@ -314,4 +314,5 @@ RUN \
  && yum clean all
 
 
-CMD ["/usr/local/src/initialize.sh"]
+USER ${XRDP_USER}
+CMD ["sudo /usr/local/src/initialize.sh"]

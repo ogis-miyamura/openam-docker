@@ -8,9 +8,6 @@ ENV container docker
 # ===== Put scripts and templates =====
 
 COPY DockerfileResources /usr/local/src/
-RUN \
-    chmod +x /usr/local/src/*.sh \
- && eval "echo \"$(cat /usr/local/src/initialize.sh)\"" > /usr/local/src/initialize.sh
 
 
 # ===== Install packages =====
@@ -315,4 +312,4 @@ RUN \
 
 
 USER ${XRDP_USER}
-CMD ["sudo /usr/local/src/initialize.sh"]
+CMD [ "/sbin/init" ]

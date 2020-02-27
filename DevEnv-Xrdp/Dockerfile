@@ -311,5 +311,4 @@ RUN \
  && yum clean all
 
 
-USER ${XRDP_USER}
 CMD [ "/sbin/init" ]

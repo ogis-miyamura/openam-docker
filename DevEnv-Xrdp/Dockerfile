@@ -123,8 +123,8 @@ RUN \
         $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
         -L http://ftp.fau.de/eclipse/technology/epp/downloads/release/${ECLIPSE_PACKAGE} \
         -o ${ECLIPSE_ARCHIVE} \
- && tar -xvf ${ECLIPSE_ARCHIVE} \
- && chwon -R ${XRDP_USER}:${XRDP_USER} eclipse* \
+ && tar xf ${ECLIPSE_ARCHIVE} \
+ && chown -R ${XRDP_USER}:${XRDP_USER} eclipse* \
  && rm -f ${ECLIPSE_ARCHIVE} \
  && ln -s /opt/eclipse/eclipse /usr/bin/eclipse \
  && cp /usr/local/src/apps_eclipse_template /usr/share/applications/eclipse.desktop
@@ -141,8 +141,8 @@ RUN \
         $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
         -L ${VSCODE_PACKAGE} \
         -o ${VSCODE_ARCHIVE} \
- && tar -xvf ${VSCODE_ARCHIVE} \
- && chwon -R ${XRDP_USER}:${XRDP_USER} vscode* \
+ && tar xf ${VSCODE_ARCHIVE} \
+ && chown -R ${XRDP_USER}:${XRDP_USER} vscode* \
  && rm -f ${VSCODE_ARCHIVE} \
  && ln -s /opt/VSCode-linux-x64/bin/code /usr/bin/vscode \
  && cp /usr/local/src/apps_vscode_template /usr/share/applications/vscode.desktop
@@ -238,8 +238,8 @@ RUN \
         $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
         -L ${TOMCAT_DOWNLOAD_HOST}/${TOMCAT_PACKAGE} \
         -o ${TOMCAT_ARCHIVE} \
- && tar xzf ${TOMCAT_ARCHIVE} \
- && chwon -R ${XRDP_USER}:${XRDP_USER} apache-tomcat-* \
+ && tar xf ${TOMCAT_ARCHIVE} \
+ && chown -R ${XRDP_USER}:${XRDP_USER} apache-tomcat-* \
  && rm -f ${TOMCAT_ARCHIVE} \
  && mv $(find . -name apache-tomcat-\* -type d) ${CATALINA_HOME}
 

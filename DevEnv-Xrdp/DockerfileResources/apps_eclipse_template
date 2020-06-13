@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Eclipse 2018-09
+Name=Eclipse
 Exec=/usr/bin/eclipse
 Terminal=false
-Comment=Eclipse 2018-09 IDE
+Comment=Eclipse IDE
 Type=Application
 Encoding=UTF-8
 Icon=/opt/eclipse/icon.xpm

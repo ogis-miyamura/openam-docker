@@ -78,75 +78,6 @@ RUN \
  && alternatives --set jar   ${JDK_HOME}/bin/jar   | true
 
 
-# ===== Install Eclipse =====
-
-ARG ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
-
-RUN \
-    cd /opt \
- && case ${HTTP_PROXY} in \
-        http* ) \
-            curl \
-              -x ${HTTP_PROXY} \
-              -LO http://ftp.fau.de/eclipse/technology/epp/downloads/release/${ECLIPSE_PACKAGE} \
-            ;; \
-        * ) \
-            curl \
-              -LO http://ftp.fau.de/eclipse/technology/epp/downloads/release/${ECLIPSE_PACKAGE} \
-            ;; \
-    esac \
- && tar -xvf $(ls eclipse-*.tar.gz) \
- && rm -f $(ls eclipse-*.tar.gz) \
- && ln -s /opt/eclipse/eclipse /usr/bin/eclipse \
- && cp /usr/local/src/apps_eclipse_template /usr/share/applications/eclipse.desktop
-
-
-# ===== Install VS Code =====
-
-ARG VSCODE_PACKAGE=https://go.microsoft.com/fwlink/?LinkID=620884
-ARG VSCODE_ARCHIVE=vscode.tar.gz
-
-RUN \
-    cd /opt \
- && case ${HTTP_PROXY} in \
-        http* ) \
-            curl \
-              -x ${HTTP_PROXY} \
-              -L ${VSCODE_PACKAGE} -o ${VSCODE_ARCHIVE} \
-            ;; \
-        * ) \
-            curl \
-              -L ${VSCODE_PACKAGE} -o ${VSCODE_ARCHIVE} \
-            ;; \
-    esac \
- && tar -xvf ${VSCODE_ARCHIVE} \
- && rm -f ${VSCODE_ARCHIVE} \
- && ln -s /opt/VSCode-linux-x64/bin/code /usr/bin/vscode \
- && cp /usr/local/src/apps_vscode_template /usr/share/applications/vscode.desktop
-
-
-# ===== Enable CentOS systemd =====
-
-RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
-rm -f /lib/systemd/system/multi-user.target.wants/*;\
-rm -f /etc/systemd/system/*.wants/*;\
-rm -f /lib/systemd/system/local-fs.target.wants/*; \
-rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
-rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-rm -f /lib/systemd/system/basic.target.wants/*;\
-rm -f /lib/systemd/system/anaconda.target.wants/*;
-
-VOLUME [ "/sys/fs/cgroup" ]
-
-
-# ===== Enable xrdp service =====
-
-RUN \
-    ln -s /usr/lib/systemd/system/xrdp.service \
-          /etc/systemd/system/multi-user.target.wants/xrdp.service \
- && systemctl enable xrdp
-
-
 # ===== Create xrdp user =====
 
 ARG XRDP_USER=${XRDP_USER:-xrdpuser}
@@ -177,6 +108,66 @@ RUN \
             \
             ;; \
     esac
+
+
+# ===== Install Eclipse =====
+
+# https://www.eclipse.org/downloads/packages/
+#ARG ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
+ARG ECLIPSE_PACKAGE=2020-06/RC2/eclipse-jee-2020-06-R-linux-gtk-x86_64.tar.gz
+ARG ECLIPSE_ARCHIVE=eclipse.tar.gz
+
+RUN \
+    cd /opt \
+ && curl \
+        $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
+        -L http://ftp.fau.de/eclipse/technology/epp/downloads/release/${ECLIPSE_PACKAGE} \
+        -o ${ECLIPSE_ARCHIVE} \
+ && tar -xvf ${ECLIPSE_ARCHIVE} \
+ && chwon -R ${XRDP_USER}:${XRDP_USER} eclipse* \
+ && rm -f ${ECLIPSE_ARCHIVE} \
+ && ln -s /opt/eclipse/eclipse /usr/bin/eclipse \
+ && cp /usr/local/src/apps_eclipse_template /usr/share/applications/eclipse.desktop
+
+
+# ===== Install VS Code =====
+
+ARG VSCODE_PACKAGE=https://go.microsoft.com/fwlink/?LinkID=620884
+ARG VSCODE_ARCHIVE=vscode.tar.gz
+
+RUN \
+    cd /opt \
+ && curl \
+        $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
+        -L ${VSCODE_PACKAGE} \
+        -o ${VSCODE_ARCHIVE} \
+ && tar -xvf ${VSCODE_ARCHIVE} \
+ && chwon -R ${XRDP_USER}:${XRDP_USER} vscode* \
+ && rm -f ${VSCODE_ARCHIVE} \
+ && ln -s /opt/VSCode-linux-x64/bin/code /usr/bin/vscode \
+ && cp /usr/local/src/apps_vscode_template /usr/share/applications/vscode.desktop
+
+
+# ===== Enable CentOS systemd =====
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+
+# ===== Enable xrdp service =====
+
+RUN \
+    ln -s /usr/lib/systemd/system/xrdp.service \
+          /etc/systemd/system/multi-user.target.wants/xrdp.service \
+ && systemctl enable xrdp
 
 
 # ===== Clone OpenAM source codes =====
@@ -234,49 +225,44 @@ USER root
 
 # ===== Install Tomcat =====
 
-ARG TOMCATVERSION=90
-ARG TOMCAT_PACKAGE=tomcat-9/v9.0.26/bin/apache-tomcat-9.0.26.tar.gz
+ARG TOMCATVERSION=9
+ARG TOMCATVERSION_DETAIL=9.0.36
+ARG CATALINA_HOME=/opt/tomcat90
 ARG TOMCAT_DOWNLOAD_HOST=https://archive.apache.org/dist/tomcat
+ARG TOMCAT_PACKAGE=tomcat-${TOMCATVERSION}/v${TOMCATVERSION_DETAIL}/bin/apache-tomcat-${TOMCATVERSION_DETAIL}.tar.gz
+ARG TOMCAT_ARCHIVE=apache-tomcat-${TOMCATVERSION}.tar.gz
 
 RUN \
     cd /opt \
- && case ${HTTP_PROXY} in \
-        http* ) \
-            curl \
-              -x ${HTTP_PROXY} \
-              -LO ${TOMCAT_DOWNLOAD_HOST}/${TOMCAT_PACKAGE} \
-            ;; \
-        * ) \
-            curl \
-              -LO ${TOMCAT_DOWNLOAD_HOST}/${TOMCAT_PACKAGE} \
-            ;; \
-    esac \
- && tar xzf $(ls apache-tomcat-*.tar.gz) \
- && rm -rf $(ls apache-tomcat-*.tar.gz) \
- && mv $(find . -name apache-tomcat-\* -type d) /opt/tomcat${TOMCATVERSION}
+ && curl \
+        $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
+        -L ${TOMCAT_DOWNLOAD_HOST}/${TOMCAT_PACKAGE} \
+        -o ${TOMCAT_ARCHIVE} \
+ && tar xzf ${TOMCAT_ARCHIVE} \
+ && chwon -R ${XRDP_USER}:${XRDP_USER} apache-tomcat-* \
+ && rm -f ${TOMCAT_ARCHIVE} \
+ && mv $(find . -name apache-tomcat-\* -type d) ${CATALINA_HOME}
+
 
 # Create user profile script
 RUN \
-    echo -e $"export CATALINA_HOME=/opt/tomcat${TOMCATVERSION} \n\
-export CATALINA_BASE=/opt/tomcat${TOMCATVERSION}" \
+    echo -e $"export CATALINA_HOME=${CATALINA_HOME} \n\
+export CATALINA_BASE=${CATALINA_HOME}" \
     > /etc/profile.d/tomcat.sh
 
 
 # ===== Install AWS CLI =====
 
+ARG AWSCLI_HOST=https://s3.amazonaws.com/aws-cli
+ARG AWSCLI_ARCHIVE=awscli-bundle.zip
+
 RUN \
-    case ${HTTP_PROXY} in \
-        http* ) \
-            curl \
-              -x ${HTTP_PROXY} \
-              -LO https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip \
-            ;; \
-        * ) \
-            curl \
-              -LO https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip \
-            ;; \
-    esac \
- && unzip awscli-bundle.zip \
+    curl \
+        $(case ${HTTP_PROXY} in http* ) echo "-x ${HTTP_PROXY}";; esac) \
+        -L ${AWSCLI_HOST}/${AWSCLI_ARCHIVE} \
+        -o ${AWSCLI_ARCHIVE} \
+ && unzip ${AWSCLI_ARCHIVE} \
+ && rm -f ${VSCODE_ARCHIVE} \
  && ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
 
 

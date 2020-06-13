@@ -12,12 +12,12 @@ services:
         - XRDP_USER=xrdpuser
         - XRDP_PASSWORD=password
         - XRDP_USER_EMAIL=xrdpuser@example.net
-        - JDKVERSION=1.8.0
-        - MAVENVERSION=33
-        - ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
-        - TOMCATVERSION=90
-        - TOMCAT_PACKAGE=tomcat-9/v9.0.26/bin/apache-tomcat-9.0.26.tar.gz
-        - TOMCAT_DOWNLOAD_HOST=https://archive.apache.org/dist/tomcat
+        # - JDKVERSION=1.8.0
+        # - MAVENVERSION=33
+        # - ECLIPSE_PACKAGE=2018-09/R/eclipse-java-2018-09-linux-gtk-x86_64.tar.gz
+        # - TOMCATVERSION=90
+        # - TOMCAT_PACKAGE=tomcat-9/v9.0.26/bin/apache-tomcat-9.0.26.tar.gz
+        # - TOMCAT_DOWNLOAD_HOST=https://archive.apache.org/dist/tomcat
 
   # usage:
   #

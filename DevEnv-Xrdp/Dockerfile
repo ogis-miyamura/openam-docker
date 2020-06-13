@@ -23,9 +23,15 @@ RUN \
 RUN \
     yum update -y \
  && yum -y install \
-      epel-release \
- && yum groupinstall -y \
-      "MATE Desktop" \
+      https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+ && yum -y groupinstall "X Window System" \
+ && yum -y install \
+      mate-desktop \
+      mate-desktop-libs \
+      mate-* \
+      caja.x86_64 \
+      system-config-language.noarch \
+      system-config-date \
  && yum autoremove -y \
       mate-screensaver \
       NetworkManager \

@@ -23,7 +23,9 @@ RUN \
 RUN \
     yum update -y \
  && yum -y install \
-      https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+      epel-release \
+ && yum update \
+      epel-release --disablerepo=epel \
  && yum -y groupinstall "X Window System" \
  && yum -y install \
       mate-desktop \

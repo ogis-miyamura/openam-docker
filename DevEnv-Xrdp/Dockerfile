@@ -26,7 +26,8 @@ RUN \
       epel-release \
  && yum update \
       epel-release --disablerepo=epel \
- && yum -y groupinstall "X Window System" \
+ && yum -y groupinstall \
+      "X Window System" \
  && yum -y install \
       mate-desktop \
       mate-desktop-libs \
@@ -34,9 +35,6 @@ RUN \
       caja.x86_64 \
       system-config-language.noarch \
       system-config-date \
- && yum autoremove -y \
-      mate-screensaver \
-      NetworkManager \
  && yum install -y \
       xrdp \
       tigervnc-server \
@@ -54,13 +52,18 @@ RUN \
  && yum clean all
 
 
+#  && yum autoremove -y \
+#       mate-screensaver \
+#       NetworkManager \
+
+
 # ===== Install Maven =====
 
-ARG MAVENVERSION=33
+ARG MAVENVERSION=35
 
 # Install Maven
 RUN \
-    yum install -y \
+    cat  /etc/yum.repos.d/epel.repo && yum install -y \
       rh-maven${MAVENVERSION} \
  && rm -rf /var/cache/yum/* \
  && yum clean all

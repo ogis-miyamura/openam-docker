@@ -1,0 +1,8 @@
+{
+    // Hot Code Replaceの定義です。
+    // autoにしておくと、javaファイルを変更したときに、warを作り直さなくても、自動的にTomcatに変更内容が反映されます。
+    "java.debug.settings.hotCodeReplace": "auto",
+    "git-graph.maxDepthOfRepoSearch": 3,
+    "gitlens.advanced.repositorySearchDepth": 3,
+    "maven.executable.path": "/opt/rh/rh-maven33/root/usr/bin/mvn"
+}

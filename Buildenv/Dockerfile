@@ -75,4 +75,43 @@ source /etc/bashrc" \
  && chmod +x /home/${BUILDUSER}/.bashrc
 
 
+# ===== Install Tomcat9 =====
+
+RUN curl -LO https://ftp.riken.jp/net/apache/tomcat/tomcat-9/v9.0.36/bin/apache-tomcat-9.0.36.tar.gz
+RUN tar xzf apache-tomcat-*.tar.gz && rm -rf !$ && ls -al
+RUN mv $(find . -name apache-tomcat-* -type d) /opt/tomcat90
+RUN chown -R 1000:1000 /opt/tomcat90/
+
+
+# ===== Clone OpenAM source codes =====
+
+# Clone OpenAM source codes and build
+
+ARG WORKDIR=/home/${BUILDUSER}/work
+
 USER ${BUILDUSER}
+
+RUN \
+    GIT_URL_PREFIX=https://github.com/openam-jp \
+ && GIT_BRANCH=master \
+ && mkdir -p ${WORKDIR} \
+ && cd ${WORKDIR} \
+ && source /etc/profile.d/maven.sh \
+ && for r in \
+        forgerock-parent \
+        forgerock-bom \
+        forgerock-build-tools \
+        forgerock-i18n-framework \
+        forgerock-guice \
+        forgerock-guava \
+        forgerock-ui \
+        forgerock-commons \
+        forgerock-persistit \
+        forgerock-bloomfilter \
+        opendj-sdk \
+        opendj \
+        openam \
+    ; do \
+        git clone ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
+        mvn install -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -f ${r}; \
+    done

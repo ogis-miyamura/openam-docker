@@ -1,0 +1,37 @@
+{
+  // 任意の名前
+  "name": "WSL DevEnv OpenAM",
+  // Remoteでログインしたいコンテナを作成するためのDockerfile名
+  "dockerFile": "Dockerfile",
+  // ホストOSの8080宛の通信を、コンテナの8080へ転送
+  "forwardPorts": [
+    8080
+  ],
+  // コンテナ側に入ったときのカレントディレクトリ
+  "workspaceFolder": "/home/builduser/work",
+  // ホストOSの作業ディレクトリを、コンテナ側のディレクトリにマウント
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/home/builduser/work,type=bind,consistency=cached"
+  ],
+  // コンテナ生成時に、コンテナ側にインストールする拡張機能
+  "extensions": [
+    "ms-ceintl.vscode-language-pack-ja",
+    "adashen.vscode-tomcat",
+    "vscjava.vscode-java-pack",
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+  ],
+  "settings": {
+    "editor.tabSize": 2,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "git-graph.maxDepthOfRepoSearch": 3,
+    "gitlens.advanced.repositorySearchDepth": 3,
+    "maven.executable.path": "/opt/rh/rh-maven33/root/usr/bin/mvn",
+    "maven.view": "hierarchical",
+    "java.debug.settings.hotCodeReplace": "auto",
+    "java.autobuild.enabled": false,
+  },
+  "shutdownAction": "none" // or "stopCompose"
+}

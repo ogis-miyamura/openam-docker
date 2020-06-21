@@ -217,7 +217,7 @@ RUN \
         openam \
     ; do \
         git clone ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
-        mvn install -DskipTests -f ${r}; \
+        mvn install -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -f ${r}; \
     done
 
 USER root
@@ -238,7 +238,7 @@ USER root
 # ===== Install Tomcat =====
 
 ARG TOMCATVERSION=90
-ARG TOMCAT_PACKAGE=tomcat-9/v9.0.26/bin/apache-tomcat-9.0.26.tar.gz
+ARG TOMCAT_PACKAGE=tomcat-9/v9.0.36/bin/apache-tomcat-9.0.36.tar.gz
 ARG TOMCAT_DOWNLOAD_HOST=https://archive.apache.org/dist/tomcat
 
 RUN \

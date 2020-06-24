@@ -8,14 +8,16 @@
     8080
   ],
   // コンテナ側に入ったときのカレントディレクトリ
-  "workspaceFolder": "/home/builduser/work",
+  "workspaceFolder": "/home/builduser",
   // ホストOSの作業ディレクトリを、コンテナ側のディレクトリにマウント
   "mounts": [
-    "source=${localWorkspaceFolder},target=/home/builduser/work,type=bind,consistency=cached"
+    // "source=${localWorkspaceFolder},target=/home/builduser/work,type=bind,consistency=cached"
   ],
   // コンテナ生成時に、コンテナ側にインストールする拡張機能
   "extensions": [
     "ms-ceintl.vscode-language-pack-ja",
+    "yzhang.markdown-all-in-one",
+    "redhat.vscode-yaml",
     "adashen.vscode-tomcat",
     "vscjava.vscode-java-pack",
     "eamodio.gitlens",
@@ -32,6 +34,13 @@
     "maven.view": "hierarchical",
     "java.debug.settings.hotCodeReplace": "auto",
     "java.autobuild.enabled": false,
+    "java.home": "/usr/lib/jvm/java-1.8.0-openjdk",
+    "java.configuration.runtimes": [
+      {
+        "name": "JavaSE-1.8",
+        "path": "/usr/lib/jvm/java-1.8.0-openjdk/"
+      },
+    ],
   },
   "shutdownAction": "none" // or "stopCompose"
 }

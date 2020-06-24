@@ -210,14 +210,14 @@ RUN \
         forgerock-guava \
         forgerock-ui \
         forgerock-commons \
-        opendj-sdk \
         forgerock-persistit \
-        opendj \
         forgerock-bloomfilter \
+        opendj-sdk \
+        opendj \
         openam \
     ; do \
         git clone ${GIT_URL_PREFIX}/${r}.git -b ${GIT_BRANCH}; \
-        mvn install -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -f ${r}; \
+        mvn install -DskipTests=true -Dmaven.javadoc.skip=true -f ${r}; \
     done
 
 USER root

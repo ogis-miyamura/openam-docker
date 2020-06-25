@@ -96,11 +96,11 @@ source /etc/bashrc" \
 
 # ===== Install Tomcat9 =====
 
-RUN cd /opt \
+RUN cd /home/${BUILDUSER} \
  && curl -LO https://ftp.riken.jp/net/apache/tomcat/tomcat-9/v9.0.36/bin/apache-tomcat-9.0.36.tar.gz \
  && tar xzf apache-tomcat-*.tar.gz \
  && rm -rf apache-tomcat-*.tar.gz \
- && mv $(find . -name apache-tomcat-* -type d) tomcat90 \
+ && mv $(ls . | grep apache-tomcat) tomcat90 \
  && chown -R ${BUILDUSER}:${BUILDUSER} tomcat90
 
 

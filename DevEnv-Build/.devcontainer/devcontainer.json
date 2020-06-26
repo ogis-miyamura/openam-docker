@@ -23,7 +23,7 @@
     // Git
     "mhutchie.git-graph",
     "eamodio.gitlens",
-    // Java Extension Pack と同等だが、Maven を対象外とする（Maven を有効化するとTomcatサーバーの追加ができない）
+    // Java Extension Pack と同等だが、Maven を対象外とする（Maven を有効化するとpom.xmlの探索に時間がかかる）
     "redhat.java",
     "vscjava.vscode-java-debug",
     "vscjava.vscode-java-test",
@@ -51,6 +51,7 @@
     ],
     "maven.executable.path": "/opt/rh/rh-maven33/root/usr/bin/mvn",
     "maven.view": "hierarchical",
+    "tomcat.workspace": "/home/builduser/tomcat-instances",
   },
   "shutdownAction": "none" // or "stopCompose"
 }

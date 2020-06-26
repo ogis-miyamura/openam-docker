@@ -101,7 +101,8 @@ RUN cd /home/${BUILDUSER} \
  && tar xzf apache-tomcat-*.tar.gz \
  && rm -rf apache-tomcat-*.tar.gz \
  && mv $(ls . | grep apache-tomcat) tomcat90 \
- && chown -R ${BUILDUSER}:${BUILDUSER} tomcat90
+ && chown -R ${BUILDUSER}:${BUILDUSER} tomcat90 \
+ && mkdir -p /home/${BUILDUSER}/tomcat-instances
 
 
 # ===== Clone OpenAM source codes =====

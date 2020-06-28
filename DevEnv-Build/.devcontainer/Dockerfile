@@ -4,11 +4,12 @@ FROM centos:7
 # ===== Build command examples =====
 #
 # docker build . -t openam-buildenv-jdk8
-# docker build . -t openam-buildenv-jdk11       --build-arg JDKVERSION=11
-# docker build . -t openam-buildenv-jdk11-mvn35 --build-arg JDKVERSION=11 --build-arg MAVENVERSION=35
+# docker build . -t openam-buildenv-jdk8        --build-arg BUILDUSER_PASSWORD=password  --build-arg JDKVERSION=1.8.0
+# docker build . -t openam-buildenv-jdk11       --build-arg BUILDUSER_PASSWORD=password  --build-arg JDKVERSION=11
+# docker build . -t openam-buildenv-jdk11-mvn35 --build-arg BUILDUSER_PASSWORD=password  --build-arg JDKVERSION=11     --build-arg MAVENVERSION=35
 
 
-# ===== Static step =====
+# ===== SetUp basic packages =====
 
 # Install basic packages
 RUN yum install -y \
@@ -73,14 +74,14 @@ source scl_source enable rh-maven${MAVENVERSION}" \
     > /etc/profile.d/maven.sh
 
 
-# ===== Create user =====
+# ===== SetUp user =====
 
 ARG BUILDUSER=builduser
 ARG BUILDUSER_PASSWORD=password
 ARG BUILDUSER_ID=1000
 ARG WORKDIR=/home/${BUILDUSER}/work
 
-# Create BUILDUSER
+# Add user
 RUN echo "${BUILDUSER}:${BUILDUSER_PASSWORD}:${BUILDUSER_ID}:${BUILDUSER_ID}::/home/${BUILDUSER}:/bin/bash" | newusers \
  && usermod -aG wheel ${BUILDUSER} \
  && echo "${BUILDUSER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -96,16 +97,21 @@ source /etc/bashrc" \
 
 # ===== Install Tomcat9 =====
 
+ARG TOMCAT_MAJOR=9
+ARG TOMCAT_DETAIL=9.0.36
+ARG TOMCAT_DIR=tomcat90
+ARG TOMCAT_INSTANCES_DIR=tomcat-instances
+
 RUN cd /home/${BUILDUSER} \
- && curl -LO https://ftp.riken.jp/net/apache/tomcat/tomcat-9/v9.0.36/bin/apache-tomcat-9.0.36.tar.gz \
+ && curl -LO https://ftp.riken.jp/net/apache/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_DETAIL}/bin/apache-tomcat-${TOMCAT_DETAIL}.tar.gz \
  && tar xzf apache-tomcat-*.tar.gz \
  && rm -rf apache-tomcat-*.tar.gz \
- && mv $(ls . | grep apache-tomcat) tomcat90 \
- && chown -R ${BUILDUSER}:${BUILDUSER} tomcat90 \
- && mkdir -p /home/${BUILDUSER}/tomcat-instances
+ && mv $(ls . | grep apache-tomcat) ${TOMCAT_DIR} \
+ && chown -R ${BUILDUSER}:${BUILDUSER} ${TOMCAT_DIR} \
+ && mkdir -p /home/${BUILDUSER}/${TOMCAT_INSTANCES_DIR}
 
 
-# ===== Clone OpenAM source codes =====
+# ===== Clone and build OpenAM =====
 
 USER ${BUILDUSER}
 

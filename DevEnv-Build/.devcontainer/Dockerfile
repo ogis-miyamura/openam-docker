@@ -44,7 +44,8 @@ RUN cd /usr/local/src/ \
 
 # ===== Install JDK =====
 
-ARG JDKVERSION=1.8.0
+##ARG JDKVERSION=1.8.0
+ARG JDKVERSION=11
 
 # Install JDK
 RUN yum install -y \

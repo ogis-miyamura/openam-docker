@@ -19,6 +19,7 @@ RUN apt-get update \
       bzip2 \
       git \
       gcc \
+      g++ \
       make \
  && apt-get -y autoremove \
  && apt-get clean

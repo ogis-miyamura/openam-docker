@@ -42,14 +42,14 @@
     "java.autobuild.enabled": false,
     "java.debug.settings.hotCodeReplace": "auto",
     "java.import.maven.enabled": false,
-    "java.home": "/usr/lib/jvm/java-1.8.0-openjdk",
+    "java.home": "/usr/lib/jvm/java-11-openjdk-amd64",
     "java.configuration.runtimes": [
       {
         "name": "JavaSE-1.8",
-        "path": "/usr/lib/jvm/java-1.8.0-openjdk/"
+        "path": "/usr/lib/jvm/java-11-openjdk-amd64/"
       },
     ],
-    "maven.executable.path": "/opt/rh/rh-maven33/root/usr/bin/mvn",
+    "maven.executable.path": "/usr/bin/mvn",
     "maven.view": "hierarchical",
     "tomcat.workspace": "/home/builduser/tomcat-instances",
   },

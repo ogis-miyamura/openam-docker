@@ -116,7 +116,6 @@ RUN \
  && GIT_BRANCH=master \
  && mkdir -p ${WORKDIR} \
  && cd ${WORKDIR} \
- && source /etc/profile.d/maven.sh \
  && for r in \
         forgerock-parent \
         forgerock-bom \

@@ -3,10 +3,8 @@ FROM centos:7
 
 # ===== Build command examples =====
 #
-# docker build . -t openam-buildenv-jdk8
-# docker build . -t openam-buildenv-jdk8        --build-arg BUILDUSER_PASSWORD=password  --build-arg JDKVERSION=1.8.0
-# docker build . -t openam-buildenv-jdk11       --build-arg BUILDUSER_PASSWORD=password  --build-arg JDKVERSION=11
-# docker build . -t openam-buildenv-jdk11-mvn35 --build-arg BUILDUSER_PASSWORD=password  --build-arg JDKVERSION=11     --build-arg MAVENVERSION=35
+# docker build . -t openam-buildenv
+# docker build . -t openam-buildenv-mvn35  --build-arg BUILDUSER_PASSWORD=password  --build-arg MAVENVERSION=35
 
 
 # ===== SetUp basic packages =====
@@ -44,19 +42,28 @@ RUN cd /usr/local/src/ \
 
 # ===== Install JDK =====
 
-##ARG JDKVERSION=1.8.0
-ARG JDKVERSION=11
-
-# Install JDK
+# Install various versions of JDK
 RUN yum install -y \
-      java-${JDKVERSION}-openjdk-devel \
+      java-1.8.0-openjdk-devel \
+      java-11-openjdk-devel \
  && yum clean all
 
-# Select specified version of JDK (and ignore warnings)
-RUN JDK_HOME=$(alternatives --list | grep java_sdk_${JDKVERSION} | head -1 | cut -f 3) \
- && alternatives --set java  ${JDK_HOME}/bin/java  | true \
- && alternatives --set javac ${JDK_HOME}/bin/javac | true \
- && alternatives --set jar   ${JDK_HOME}/bin/jar   | true
+# Register java to alternatives
+RUN for JDK in $(ls -l /usr/lib/jvm | grep -E "^d" | cut -d " " -f 9); do \
+      JDK_BIN=/usr/lib/jvm/${JDK}/bin; \
+      alternatives --install /usr/bin/java java ${JDK_BIN}/java 1 \
+        --slave /usr/local/java_home java_home /usr/lib/jvm/${JDK} \
+        --slave /usr/bin/javac javac ${JDK_BIN}/javac \
+        --slave /usr/bin/javah javah ${JDK_BIN}/javah \
+        --slave /usr/bin/javap javap ${JDK_BIN}/javap \
+        --slave /usr/bin/javadoc javadoc ${JDK_BIN}/javadoc \
+        --slave /usr/bin/jar jar ${JDK_BIN}/jar \
+        --slave /usr/bin/keytool keytool ${JDK_BIN}/keytool \
+        --slave /usr/bin/rmiregistry rmiregistry ${JDK_BIN}/rmiregistry \
+        --slave /usr/bin/jarsigner jarsigner ${JDK_BIN}/jarsigner \
+        --slave /usr/bin/rmic rmic ${JDK_BIN}/rmic \
+        ; \
+    done
 
 
 # ===== Install Maven =====
@@ -96,19 +103,27 @@ source /etc/bashrc" \
  && chmod +x /home/${BUILDUSER}/.bashrc
 
 
-# ===== Install Tomcat9 =====
+# ===== Install various versions of Tomcat =====
 
-ARG TOMCAT_MAJOR=9
-ARG TOMCAT_DETAIL=9.0.36
 ARG TOMCAT_DIR=tomcat90
 ARG TOMCAT_INSTANCES_DIR=tomcat-instances
 
+USER ${BUILDUSER}
+
 RUN cd /home/${BUILDUSER} \
- && curl -LO https://ftp.riken.jp/net/apache/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_DETAIL}/bin/apache-tomcat-${TOMCAT_DETAIL}.tar.gz \
- && tar xzf apache-tomcat-*.tar.gz \
+ && for TOMCAT_MAJOR in 7 8 9 10; do \
+      case $TOMCAT_MAJOR in \
+        7) TOMCAT_DETAIL=7.0.105;; \
+        8) TOMCAT_DETAIL=8.5.57;; \
+        9) TOMCAT_DETAIL=9.0.37;; \
+        10) TOMCAT_DETAIL=10.0.0-M7;; \
+      esac; \
+      TOMCAT_ARCHIVE=apache-tomcat-${TOMCAT_DETAIL}; \
+      curl -LO https://archive.apache.org/dist/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_DETAIL}/bin/${TOMCAT_ARCHIVE}.tar.gz; \
+      tar xzf ${TOMCAT_ARCHIVE}.tar.gz; \
+      mv ${TOMCAT_ARCHIVE} tomcat${TOMCAT_MAJOR}; \
+    done \
  && rm -rf apache-tomcat-*.tar.gz \
- && mv $(ls . | grep apache-tomcat) ${TOMCAT_DIR} \
- && chown -R ${BUILDUSER}:${BUILDUSER} ${TOMCAT_DIR} \
  && mkdir -p /home/${BUILDUSER}/${TOMCAT_INSTANCES_DIR}
 
 

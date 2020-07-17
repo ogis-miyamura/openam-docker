@@ -44,9 +44,15 @@ RUN cd /usr/local/src/ \
 
 # Install various versions of JDK
 RUN yum install -y \
+      java-1.7.0-openjdk-devel \
       java-1.8.0-openjdk-devel \
       java-11-openjdk-devel \
  && yum clean all
+
+## Remove java from alternatives
+RUN for JDK in $(alternatives --display java | grep -E "^/usr/lib/jvm" | cut -d " " -f 1); do \
+      alternatives --remove java ${JDK}; \
+    done
 
 # Register java to alternatives
 RUN for JDK in $(ls -l /usr/lib/jvm | grep -E "^d" | cut -d " " -f 9); do \
@@ -77,7 +83,7 @@ RUN yum install -y \
 
 # Create user profile script
 RUN echo -e $"export LANG=C \n\
-export JAVA_HOME=/usr/lib/jvm/java-${JDKVERSION}-openjdk \n\
+export JAVA_HOME=/usr/local/java_home \n\
 source scl_source enable rh-maven${MAVENVERSION}" \
     > /etc/profile.d/maven.sh
 

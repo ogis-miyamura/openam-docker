@@ -44,7 +44,6 @@ RUN cd /usr/local/src/ \
 
 # Install various versions of JDK
 RUN yum install -y \
-      java-1.7.0-openjdk-devel \
       java-1.8.0-openjdk-devel \
       java-11-openjdk-devel \
  && yum clean all
@@ -55,7 +54,7 @@ RUN for JDK in $(alternatives --display java | grep -E "^/usr/lib/jvm" | cut -d 
     done
 
 # Register java to alternatives
-RUN for JDK in $(ls -l /usr/lib/jvm | grep -E "^d" | cut -d " " -f 9); do \
+RUN for JDK in $(ls -l /usr/lib/jvm | grep -v "1.7" | grep -E "^d" | cut -d " " -f 9); do \
       JDK_BIN=/usr/lib/jvm/${JDK}/bin; \
       alternatives --install /usr/bin/java java ${JDK_BIN}/java 1 \
         --slave /usr/local/java_home java_home /usr/lib/jvm/${JDK} \

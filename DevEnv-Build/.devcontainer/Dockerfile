@@ -68,6 +68,7 @@ RUN for JDK in $(ls -l /usr/lib/jvm | grep -v "1.7" | grep -E "^d" | cut -d " " 
         --slave /usr/bin/jarsigner jarsigner ${JDK_BIN}/jarsigner \
         --slave /usr/bin/rmic rmic ${JDK_BIN}/rmic \
         ; \
+       && alternatives --set java ${JDK_BIN}/java; \
     done
 
 

@@ -42,11 +42,15 @@
     "java.autobuild.enabled": false,
     "java.debug.settings.hotCodeReplace": "auto",
     "java.import.maven.enabled": false,
-    "java.home": "/usr/lib/jvm/java-1.8.0-openjdk",
+    "java.home": "/usr/local/java_home",
     "java.configuration.runtimes": [
       {
         "name": "JavaSE-1.8",
         "path": "/usr/lib/jvm/java-1.8.0-openjdk/"
+      },
+      {
+        "name": "JavaSE-11",
+        "path": "/usr/lib/jvm/java-11-openjdk/"
       },
     ],
     "maven.executable.path": "/opt/rh/rh-maven33/root/usr/bin/mvn",

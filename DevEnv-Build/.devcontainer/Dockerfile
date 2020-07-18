@@ -53,10 +53,12 @@ RUN for JDK in $(alternatives --display java | grep -E "^/usr/lib/jvm" | cut -d 
       alternatives --remove java ${JDK}; \
     done
 
-# Register java to alternatives
+# Register java to alternatives and select JDK1.8
 RUN for JDK in $(ls -l /usr/lib/jvm | grep -v "1.7" | grep -E "^d" | cut -d " " -f 9); do \
       JDK_BIN=/usr/lib/jvm/${JDK}/bin; \
-      alternatives --install /usr/bin/java java ${JDK_BIN}/java 1 \
+      echo ${JDK_BIN}; \
+      alternatives --install \
+        /usr/bin/java java ${JDK_BIN}/java 1 \
         --slave /usr/local/java_home java_home /usr/lib/jvm/${JDK} \
         --slave /usr/bin/javac javac ${JDK_BIN}/javac \
         --slave /usr/bin/javah javah ${JDK_BIN}/javah \
@@ -68,8 +70,9 @@ RUN for JDK in $(ls -l /usr/lib/jvm | grep -v "1.7" | grep -E "^d" | cut -d " " 
         --slave /usr/bin/jarsigner jarsigner ${JDK_BIN}/jarsigner \
         --slave /usr/bin/rmic rmic ${JDK_BIN}/rmic \
         ; \
-      alternatives --set java ${JDK_BIN}/java; \
-    done
+    done \
+ && alternatives --set \
+      java /usr/lib/jvm/$(ls -l /usr/lib/jvm | grep -E "^d.*1.8" | cut -d " " -f 9)/bin/java
 
 
 # ===== Install Maven =====

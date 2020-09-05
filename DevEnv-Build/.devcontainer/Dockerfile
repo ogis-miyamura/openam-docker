@@ -18,6 +18,7 @@ RUN yum install -y \
       gcc-c++ \
       make \
       centos-release-scl \
+      net-tools \
  && yum clean all
 
 # Install Git latest version

@@ -1,0 +1,163 @@
+version: "3.7"
+
+services:
+
+    # PreProcess
+    # Download OpenAM-war
+    admin-preprocess:
+        image: alpine:latest
+        container_name: admin-preprocess
+        volumes:
+            - ./resources/admin-preprocess/download_openam.sh:/opt/scripts/download_openam.sh
+            - openam-webapps-dir:/opt/openam-webapps-dir
+        command: "sh /opt/scripts/download_openam.sh"
+
+    # Portainer
+    # 127.0.0.1 admin-portainer.example.com
+    # http://admin-portainer.example.com:9000
+    admin-portainer:
+        image: portainer/portainer
+        container_name: admin-portainer
+        hostname: admin-portainer
+        domainname: example.com
+        ports:
+            - "9000:9000"
+            - "8000:8000"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - admin-portainer-data:/data
+
+    # Fluentd
+    admin-fluentd:
+        # image: fluent/fluentd:latest
+        build: ./resources/admin-fluentd
+        container_name: admin-fluentd
+        depends_on:
+            - admin-elasticsearch
+        ports:
+            - "24224:24224"
+            - "24224:24224/udp"
+        volumes:
+            - admin-fluentd-log:/fluentd/log
+            - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
+
+    # Elasticsearch
+    # https://www.elastic.co/guide/en/kibana/current/docker.html
+    admin-elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+        container_name: admin-elasticsearch
+        hostname: admin-elasticsearch
+        domainname: example.com
+        environment:
+            - discovery.type=single-node
+            - cluster.name=docker-cluster
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        ports:
+            - 9200:9200
+        volumes:
+            - admin-elasticsearch-data:/usr/share/elasticsearch/data
+
+    # Kibana
+    # https://www.elastic.co/guide/en/kibana/current/docker.html
+    # 127.0.0.1 admin-kibana admin-kibana.example.com
+    # http://admin-kibana.example.com:5601
+    admin-kibana:
+        image: docker.elastic.co/kibana/kibana:7.9.0
+        container_name: admin-kibana
+        hostname: admin-kibana
+        domainname: example.com
+        environment:
+            ELASTICSEARCH_HOSTS: http://admin-elasticsearch:9200
+            ELASTICSEARCH_URL: http://admin-elasticsearch:9200
+        ports:
+            - 5601:5601
+        # volumes:
+        #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+
+    # openam-primary
+    # 127.0.0.1 openam-primary.example.com
+    # http://openam-primary.example.com:18080/openam
+    # http://openam-primary:8080/openam
+    openam-primary:
+        image: tomcat:9.0-jdk8
+        container_name: openam-primary
+        hostname: openam-primary
+        domainname: example.com
+        depends_on:
+            - admin-preprocess
+            - admin-fluentd
+        ports:
+            - "8080:8080"
+            - "8443:8443"
+            - "50389:50389"
+            - "50889:50889"
+            - "4444:4444"
+        volumes:
+            - openam-webapps-dir:/opt/openam:ro
+            - openam-primary-base-dir:/root/openam
+            - openam-primary-tomcat-logs:/usr/local/tomcat/logs
+            - /dev/urandom:/dev/random
+            - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
+            - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip
+            - ./resources/openam/primary.configParam:/opt/install/.configParam
+        # logging:
+        #     driver: "fluentd"
+        #     options:
+        #         fluentd-address: "localhost:24224"
+        #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
+        entrypoint: "sh /opt/install/wait_download.sh"
+
+    # # openam-secondary
+    # # 127.0.0.1 openam-secondary.example.com
+    # # http://openam-secondary.example.com:28080/openam
+    # openam-secondary:
+    #     image: tomcat:9.0-jdk8
+    #     container_name: openam-secondary
+    #     hostname: openam-secondary
+    #     domainname: example.com
+    #     depends_on:
+    #         - admin-preprocess
+    #         - admin-fluentd
+    #     ports:
+    #         - "28080:8080"
+    #         - "28443:8443"
+    #         - "52389:50389"
+    #         - "58989:58989"
+    #         - "24444:4444"
+    #     volumes:
+    #         - openam-webapps-dir:/opt/openam:ro
+    #         - openam-secondary-base-dir:/root/openam
+    #         - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
+    #         - /dev/urandom:/dev/random
+    #         - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
+    #         - ./resources/openam/openam-configurator-tool-15.0.0-SNAPSHOT.jar:/opt/install/openam-configurator-tool.jar
+    #         - ./resources/openam/secondary.configParam:/opt/install/.configParam
+    #     # logging:
+    #     #     driver: "fluentd"
+    #     #     options:
+    #     #         fluentd-address: "localhost:24224"
+    #     #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
+    #     entrypoint: "sh /opt/install/wait_download.sh"
+
+        # Load balancer
+        # User datastore
+        # Policy agent
+        # Application
+volumes:
+    # OpenAM Shared
+    openam-webapps-dir:
+    # OpenAM Primary
+    openam-primary-base-dir:
+    openam-primary-tomcat-logs:
+    # OpenAM Secondary
+    openam-secondary-base-dir:
+    openam-secondary-tomcat-logs:
+    # Admin tools
+    admin-portainer-data:
+    admin-elasticsearch-data:
+    admin-fluentd-log:

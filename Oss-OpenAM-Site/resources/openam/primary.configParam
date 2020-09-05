@@ -1,0 +1,23 @@
+ADMIN_PWD=p@ssw0rd
+AMLDAPUSERPASSWD=p@ssw0rd2
+AM_ENC_KEY=pwei29ufh83xl
+BASE_DIR=/root/openam
+COOKIE_DOMAIN=openam-primary
+DATA_STORE=embedded
+DIRECTORY_ADMIN_PORT=4444
+DIRECTORY_JMX_PORT=1689
+DIRECTORY_PORT=50389
+DIRECTORY_SERVER=localhost
+DIRECTORY_SSL=SIMPLE
+DS_DIRMGRDN=cn=Directory Manager
+DS_DIRMGRPASSWD=p@ssw0rd
+PLATFORM_LOCALE=en_US
+ROOT_SUFFIX=dc=openam,dc=jp
+SERVER_HOST=openam-primary
+SERVER_URI=/openam
+SERVER_URL=http://openam-primary:8080
+DEPLOYMENT_URI=/openam
+acceptLicense=true
+ie7fix=11
+locale=ja
+

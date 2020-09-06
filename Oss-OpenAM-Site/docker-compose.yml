@@ -27,57 +27,57 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - admin-portainer-data:/data
 
-    # Fluentd
-    admin-fluentd:
-        # image: fluent/fluentd:latest
-        build: ./resources/admin-fluentd
-        container_name: admin-fluentd
-        depends_on:
-            - admin-elasticsearch
-        ports:
-            - "24224:24224"
-            - "24224:24224/udp"
-        volumes:
-            - admin-fluentd-log:/fluentd/log
-            - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    # # Fluentd
+    # admin-fluentd:
+    #     # image: fluent/fluentd:latest
+    #     build: ./resources/admin-fluentd
+    #     container_name: admin-fluentd
+    #     depends_on:
+    #         - admin-elasticsearch
+    #     ports:
+    #         - "24224:24224"
+    #         - "24224:24224/udp"
+    #     volumes:
+    #         - admin-fluentd-log:/fluentd/log
+    #         - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
 
-    # Elasticsearch
-    # https://www.elastic.co/guide/en/kibana/current/docker.html
-    admin-elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
-        container_name: admin-elasticsearch
-        hostname: admin-elasticsearch
-        domainname: example.com
-        environment:
-            - discovery.type=single-node
-            - cluster.name=docker-cluster
-            - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-        ports:
-            - 9200:9200
-        volumes:
-            - admin-elasticsearch-data:/usr/share/elasticsearch/data
+    # # Elasticsearch
+    # # https://www.elastic.co/guide/en/kibana/current/docker.html
+    # admin-elasticsearch:
+    #     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+    #     container_name: admin-elasticsearch
+    #     hostname: admin-elasticsearch
+    #     domainname: example.com
+    #     environment:
+    #         - discovery.type=single-node
+    #         - cluster.name=docker-cluster
+    #         - bootstrap.memory_lock=true
+    #         - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    #     ulimits:
+    #         memlock:
+    #             soft: -1
+    #             hard: -1
+    #     ports:
+    #         - 9200:9200
+    #     volumes:
+    #         - admin-elasticsearch-data:/usr/share/elasticsearch/data
 
-    # Kibana
-    # https://www.elastic.co/guide/en/kibana/current/docker.html
-    # 127.0.0.1 admin-kibana admin-kibana.example.com
-    # http://admin-kibana.example.com:5601
-    admin-kibana:
-        image: docker.elastic.co/kibana/kibana:7.9.0
-        container_name: admin-kibana
-        hostname: admin-kibana
-        domainname: example.com
-        environment:
-            ELASTICSEARCH_HOSTS: http://admin-elasticsearch:9200
-            ELASTICSEARCH_URL: http://admin-elasticsearch:9200
-        ports:
-            - 5601:5601
-        # volumes:
-        #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    # # Kibana
+    # # https://www.elastic.co/guide/en/kibana/current/docker.html
+    # # 127.0.0.1 admin-kibana admin-kibana.example.com
+    # # http://admin-kibana.example.com:5601
+    # admin-kibana:
+    #     image: docker.elastic.co/kibana/kibana:7.9.0
+    #     container_name: admin-kibana
+    #     hostname: admin-kibana
+    #     domainname: example.com
+    #     environment:
+    #         ELASTICSEARCH_HOSTS: http://admin-elasticsearch:9200
+    #         ELASTICSEARCH_URL: http://admin-elasticsearch:9200
+    #     ports:
+    #         - 5601:5601
+    #     # volumes:
+    #     #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
     # openam-primary
     # 127.0.0.1 openam-primary.example.com
@@ -98,19 +98,29 @@ services:
             - "50889:50889"
             - "4444:4444"
         volumes:
-            - openam-webapps-dir:/opt/openam:ro
+            - /dev/urandom:/dev/random:ro
+            - openam-webapps-dir:/opt/readonly:ro
             - openam-primary-base-dir:/root/openam
             - openam-primary-tomcat-logs:/usr/local/tomcat/logs
-            - /dev/urandom:/dev/random
             - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
             - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip
             - ./resources/openam/primary.configParam:/opt/install/.configParam
+        entrypoint: "sh /opt/install/wait_download.sh"
+
+    # Tail openam-primary
+    admin-tail:
+        image: alpine:latest
+        container_name: admin-tail-openam-primary
+        volumes:
+            - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
+            - openam-primary-base-dir:/var/tmp/openam-primary-base-dir:ro
+            - openam-primary-tomcat-logs:/var/tmp/openam-primary-tomcat-logs:ro
+        entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
         # logging:
         #     driver: "fluentd"
         #     options:
         #         fluentd-address: "localhost:24224"
         #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
-        entrypoint: "sh /opt/install/wait_download.sh"
 
     # # openam-secondary
     # # 127.0.0.1 openam-secondary.example.com
@@ -130,7 +140,7 @@ services:
     #         - "58989:58989"
     #         - "24444:4444"
     #     volumes:
-    #         - openam-webapps-dir:/opt/openam:ro
+    #         - openam-webapps-dir:/opt/install:ro
     #         - openam-secondary-base-dir:/root/openam
     #         - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
     #         - /dev/urandom:/dev/random

@@ -18,8 +18,6 @@ services:
     admin-portainer:
         image: portainer/portainer
         container_name: admin-portainer
-        hostname: admin-portainer
-        domainname: example.com
         ports:
             - "9000:9000"
             - "8000:8000"
@@ -27,19 +25,17 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - admin-portainer-data:/data
 
-    # # Fluentd
-    # admin-fluentd:
-    #     # image: fluent/fluentd:latest
-    #     build: ./resources/admin-fluentd
-    #     container_name: admin-fluentd
-    #     depends_on:
-    #         - admin-elasticsearch
-    #     ports:
-    #         - "24224:24224"
-    #         - "24224:24224/udp"
-    #     volumes:
-    #         - admin-fluentd-log:/fluentd/log
-    #         - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    # Fluentd
+    admin-fluentd:
+        # image: fluent/fluentd:latest
+        build: ./resources/admin-fluentd
+        container_name: admin-fluentd
+        ports:
+            - "24224:24224"
+            - "24224:24224/udp"
+        volumes:
+            - admin-fluentd-log:/fluentd/log
+            - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
 
     # # Elasticsearch
     # # https://www.elastic.co/guide/en/kibana/current/docker.html
@@ -79,9 +75,20 @@ services:
     #     # volumes:
     #     #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
+    # openam-lb
+    # 127.0.0.1 openam-lb.example.com
+    # http://openam-lb.example.com/openam
+    # https://openam-lb.example.com/openam
+    openam-lb:
+        image: httpd:2.4
+        container_name: openam-lb
+        ports:
+            - "80:80"
+            - "443:443"
+
     # openam-primary
     # 127.0.0.1 openam-primary.example.com
-    # http://openam-primary.example.com:18080/openam
+    # http://openam-primary.example.com:8080/openam
     # http://openam-primary:8080/openam
     openam-primary:
         image: tomcat:9.0-jdk8

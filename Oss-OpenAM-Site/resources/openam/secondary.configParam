@@ -1,28 +1,59 @@
+# OpenAM 13.5 > Reference
+# https://backstage.forgerock.com/docs/openam/13.5/reference/#man-configurator-jar-1
+# 
+# Chapter 5 Configuring OpenSSO Enterprise Using the Command-Line Configurator (Sun OpenSSO Enterprise 8.0 Installation and Configuration Guide)
+# https://docs.oracle.com/cd/E19681-01/820-3320/ghhqv/index.html
+
+#
+# Install
+#
+BASE_DIR=/root/openam
+PLATFORM_LOCALE=en_US
+ie7fix=11
+locale=ja
+
+#
+# Admin
+#
 ADMIN_PWD=p@ssw0rd
 AM_ENC_KEY=pwei29ufh83xl
-BASE_DIR=/root/openam
-COOKIE_DOMAIN=openam-secondary
+acceptLicense=true
+
+#
+# DataStore
+#
 DATA_STORE=embedded
+AMLDAPUSERPASSWD=p@ssw0rd2
+ENCLDAPUSERPASSWD=AQICBSLw1mysTnLCYUGqdbSLk+lGJSEGwlgE
+DIRECTORY_SERVER=localhost
 DIRECTORY_ADMIN_PORT=4444
 DIRECTORY_JMX_PORT=1689
 DIRECTORY_PORT=50389
-DIRECTORY_SERVER=openam-secondary
 DIRECTORY_SSL=SIMPLE
 DS_DIRMGRDN=cn=Directory Manager
 DS_DIRMGRPASSWD=p@ssw0rd
-DS_EMB_REPL_ADMINPORT2=4444
+ROOT_SUFFIX=dc=openam,dc=jp
+
+#
+# Replication
+#
 DS_EMB_REPL_FLAG=embReplFlag
 DS_EMB_REPL_HOST2=localhost
+DS_EMB_REPL_ADMINPORT2=4444
 DS_EMB_REPL_REPLPORT1=58989
 DS_EMB_REPL_REPLPORT2=50889
-ENCLDAPUSERPASSWD=AQICBSLw1mysTnLCYUGqdbSLk+lGJSEGwlgE
-PLATFORM_LOCALE=en_US
-ROOT_SUFFIX=dc=openam,dc=jp
+
+#
+# Server
+#
+DEPLOYMENT_URI=/openam
+COOKIE_DOMAIN=.example.com
 SERVER_HOST=openam-secondary
 SERVER_URI=/openam
-SERVER_URL=http://openam-secondary:28080
-DEPLOYMENT_URI=/openam
-acceptLicense=true
+SERVER_URL=http://openam-secondary:8080
+
+#
+# Site
+#
+LB_SITE_NAME=openam
 existingserverid=http://openam-primary:8080/openam
-ie7fix=8
-locale=ja

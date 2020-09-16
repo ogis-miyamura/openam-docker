@@ -2,16 +2,6 @@ version: "3.7"
 
 services:
 
-    # PreProcess
-    # Download OpenAM-war
-    admin-preprocess:
-        image: alpine:latest
-        container_name: admin-preprocess
-        volumes:
-            - ./resources/admin-preprocess/download_openam.sh:/opt/scripts/download_openam.sh
-            - openam-webapps-dir:/opt/openam-webapps-dir
-        command: "sh /opt/scripts/download_openam.sh"
-
     # Portainer
     # 127.0.0.1 admin-portainer.example.com
     # http://admin-portainer.example.com:9000
@@ -79,12 +69,20 @@ services:
     # 127.0.0.1 openam-lb.example.com
     # http://openam-lb.example.com/openam
     # https://openam-lb.example.com/openam
+    # http://openam-lb.example.com/balancer-manager/
     openam-lb:
         image: httpd:2.4
         container_name: openam-lb
         ports:
             - "80:80"
             - "443:443"
+        volumes:
+            - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf
+        environment:
+            PROXY_PATH: /
+            PROXY_BALANCER_PRIMARY: http://openam-primary:8080
+            PROXY_BALANCER_SECONDARY: http://openam-secondary:28080
+
 
     # openam-primary
     # 127.0.0.1 openam-primary.example.com
@@ -96,7 +94,6 @@ services:
         hostname: openam-primary
         domainname: example.com
         depends_on:
-            - admin-preprocess
             - admin-fluentd
         ports:
             - "8080:8080"
@@ -106,7 +103,7 @@ services:
             - "4444:4444"
         volumes:
             - /dev/urandom:/dev/random:ro
-            - openam-webapps-dir:/opt/readonly:ro
+            - openam-shared:/opt/shared
             - openam-primary-base-dir:/root/openam
             - openam-primary-tomcat-logs:/usr/local/tomcat/logs
             - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
@@ -115,13 +112,13 @@ services:
         entrypoint: "sh /opt/install/wait_download.sh"
 
     # Tail openam-primary
-    admin-tail:
+    openam-primary-log:
         image: alpine:latest
-        container_name: admin-tail-openam-primary
+        container_name: openam-primary-log
         volumes:
             - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
-            - openam-primary-base-dir:/var/tmp/openam-primary-base-dir:ro
-            - openam-primary-tomcat-logs:/var/tmp/openam-primary-tomcat-logs:ro
+            - openam-primary-base-dir:/var/tmp/openam-base-dir:ro
+            - openam-primary-tomcat-logs:/var/tmp/openam-tomcat-logs:ro
         entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
         # logging:
         #     driver: "fluentd"
@@ -129,45 +126,60 @@ services:
         #         fluentd-address: "localhost:24224"
         #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
 
-    # # openam-secondary
-    # # 127.0.0.1 openam-secondary.example.com
-    # # http://openam-secondary.example.com:28080/openam
-    # openam-secondary:
-    #     image: tomcat:9.0-jdk8
-    #     container_name: openam-secondary
-    #     hostname: openam-secondary
-    #     domainname: example.com
-    #     depends_on:
-    #         - admin-preprocess
-    #         - admin-fluentd
-    #     ports:
-    #         - "28080:8080"
-    #         - "28443:8443"
-    #         - "52389:50389"
-    #         - "58989:58989"
-    #         - "24444:4444"
-    #     volumes:
-    #         - openam-webapps-dir:/opt/install:ro
-    #         - openam-secondary-base-dir:/root/openam
-    #         - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
-    #         - /dev/urandom:/dev/random
-    #         - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
-    #         - ./resources/openam/openam-configurator-tool-15.0.0-SNAPSHOT.jar:/opt/install/openam-configurator-tool.jar
-    #         - ./resources/openam/secondary.configParam:/opt/install/.configParam
-    #     # logging:
-    #     #     driver: "fluentd"
-    #     #     options:
-    #     #         fluentd-address: "localhost:24224"
-    #     #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
-    #     entrypoint: "sh /opt/install/wait_download.sh"
+    # openam-secondary
+    # 127.0.0.1 openam-secondary.example.com
+    # http://openam-secondary.example.com:28080/openam
+    openam-secondary:
+        image: tomcat:9.0-jdk8
+        container_name: openam-secondary
+        hostname: openam-secondary
+        domainname: example.com
+        depends_on:
+            - admin-fluentd
+        ports:
+            - "28080:8080"
+            - "28443:8443"
+            - "52389:50389"
+            - "58989:58989"
+            - "24444:4444"
+        volumes:
+            - openam-shared:/opt/shared
+            - openam-secondary-base-dir:/root/openam
+            - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
+            - /dev/urandom:/dev/random
+            - ./resources/openam/wait_install_primary.sh:/opt/install/wait_install_primary.sh
+            - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
+            - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip
+            - ./resources/openam/secondary.configParam:/opt/install/.configParam
+        # logging:
+        #     driver: "fluentd"
+        #     options:
+        #         fluentd-address: "localhost:24224"
+        #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
+        entrypoint: "sh /opt/install/wait_install_primary.sh"
 
-        # Load balancer
-        # User datastore
-        # Policy agent
-        # Application
+    # Tail openam-secondary
+    openam-secondary-log:
+        image: alpine:latest
+        container_name: openam-secondary-log
+        volumes:
+            - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
+            - openam-secondary-base-dir:/var/tmp/openam-base-dir:ro
+            - openam-secondary-tomcat-logs:/var/tmp/openam-tomcat-logs:ro
+        entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
+        # logging:
+        #     driver: "fluentd"
+        #     options:
+        #         fluentd-address: "localhost:24224"
+        #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
+
+    # Policy agent
+    # Application
+    # External User datastore
+
 volumes:
     # OpenAM Shared
-    openam-webapps-dir:
+    openam-shared:
     # OpenAM Primary
     openam-primary-base-dir:
     openam-primary-tomcat-logs:

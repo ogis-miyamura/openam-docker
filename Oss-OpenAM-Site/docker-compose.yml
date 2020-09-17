@@ -14,10 +14,10 @@ services:
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
             - admin-portainer-data:/data
+        restart: always
 
     # Fluentd
     admin-fluentd:
-        # image: fluent/fluentd:latest
         build: ./resources/admin-fluentd
         container_name: admin-fluentd
         ports:
@@ -26,6 +26,7 @@ services:
         volumes:
             - admin-fluentd-log:/fluentd/log
             - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
+        restart: always
 
     # # Elasticsearch
     # # https://www.elastic.co/guide/en/kibana/current/docker.html
@@ -65,14 +66,15 @@ services:
     #     # volumes:
     #     #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
+
     # openam-lb
     # 127.0.0.1 openam-lb.example.com
     # http://openam-lb.example.com/openam
     # https://openam-lb.example.com/openam
     # http://openam-lb.example.com/balancer-manager/
     openam-lb:
-        image: httpd:2.4
-        container_name: openam-lb
+        image: httpd:${OPENAM_APACHE_IMAGE_TAG}
+        container_name: ${OPENAM_LB_HOSTNAME}
         ports:
             - "80:80"
             - "443:443"
@@ -80,8 +82,21 @@ services:
             - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf
         environment:
             PROXY_PATH: /
-            PROXY_BALANCER_PRIMARY: http://openam-primary:8080
-            PROXY_BALANCER_SECONDARY: http://openam-secondary:28080
+            PROXY_BALANCER_PRIMARY: http://${OPENAM_PRIMARY_HOSTNAME}:8080
+            PROXY_BALANCER_SECONDARY: http://${OPENAM_SECONDARY_HOSTNAME}:8080
+            PROXY_BALANCER_STICKY_COOKIE: ${OPENAM_PROXY_BALANCER_STICKY_COOKIE}
+            PROXY_BALANCER_RETRY: ${OPENAM_PROXY_BALANCER_RETRY}
+        restart: always
+
+
+    # openam-lb TLS Certificate
+    openam-tls-cert:
+        image: alpine:latest
+        container_name: openam-tls-cert
+        # volumes:
+        #     - openam-primary-base-dir:/var/tmp/openam-base-dir:ro
+        #     - openam-primary-tomcat-logs:/var/tmp/openam-tomcat-logs:ro
+        # entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
 
 
     # openam-primary
@@ -89,9 +104,9 @@ services:
     # http://openam-primary.example.com:8080/openam
     # http://openam-primary:8080/openam
     openam-primary:
-        image: tomcat:9.0-jdk8
-        container_name: openam-primary
-        hostname: openam-primary
+        image: tomcat:${OPENAM_TOMCAT_IMAGE_TAG}
+        container_name: ${OPENAM_PRIMARY_HOSTNAME}
+        hostname: ${OPENAM_PRIMARY_HOSTNAME}
         domainname: example.com
         depends_on:
             - admin-fluentd
@@ -106,15 +121,19 @@ services:
             - openam-shared:/opt/shared
             - openam-primary-base-dir:/root/openam
             - openam-primary-tomcat-logs:/usr/local/tomcat/logs
-            - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
-            - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip
-            - ./resources/openam/primary.configParam:/opt/install/.configParam
+            - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh:ro
+            - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
+            - ./resources/openam/primary.configParam:/opt/install/.configParam:ro
+        environment: 
+            OPENAM_ADMIN_PASSWORD: ${OPENAM_ADMIN_PASSWORD}
+            OPENAM_AGENT_PASSWORD: ${OPENAM_AGENT_PASSWORD}
+            OPENAM_AM_ENC_KEY: ${OPENAM_AM_ENC_KEY}
         entrypoint: "sh /opt/install/wait_download.sh"
 
     # Tail openam-primary
     openam-primary-log:
         image: alpine:latest
-        container_name: openam-primary-log
+        container_name: ${OPENAM_PRIMARY_HOSTNAME}-log
         volumes:
             - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
             - openam-primary-base-dir:/var/tmp/openam-base-dir:ro
@@ -130,9 +149,10 @@ services:
     # 127.0.0.1 openam-secondary.example.com
     # http://openam-secondary.example.com:28080/openam
     openam-secondary:
-        image: tomcat:9.0-jdk8
-        container_name: openam-secondary
-        hostname: openam-secondary
+        # image: "${OPENAM_TOMCAT_IMAGE}"
+        image: tomcat:${OPENAM_TOMCAT_IMAGE_TAG}
+        container_name: ${OPENAM_SECONDARY_HOSTNAME}
+        hostname: ${OPENAM_SECONDARY_HOSTNAME}
         domainname: example.com
         depends_on:
             - admin-fluentd
@@ -147,21 +167,20 @@ services:
             - openam-secondary-base-dir:/root/openam
             - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
             - /dev/urandom:/dev/random
-            - ./resources/openam/wait_install_primary.sh:/opt/install/wait_install_primary.sh
-            - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh
-            - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip
-            - ./resources/openam/secondary.configParam:/opt/install/.configParam
-        # logging:
-        #     driver: "fluentd"
-        #     options:
-        #         fluentd-address: "localhost:24224"
-        #         tag: "docker.{{.ImageName}}.{{.Name}}.{{.ID}}"
+            - ./resources/openam/wait_install_primary.sh:/opt/install/wait_install_primary.sh:ro
+            - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh:ro
+            - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
+            - ./resources/openam/secondary.configParam:/opt/install/.configParam:ro
+        environment: 
+            OPENAM_ADMIN_PASSWORD: ${OPENAM_ADMIN_PASSWORD}
+            OPENAM_AGENT_PASSWORD: ${OPENAM_AGENT_PASSWORD}
+            OPENAM_AM_ENC_KEY: ${OPENAM_AM_ENC_KEY}
         entrypoint: "sh /opt/install/wait_install_primary.sh"
 
     # Tail openam-secondary
     openam-secondary-log:
         image: alpine:latest
-        container_name: openam-secondary-log
+        container_name: ${OPENAM_SECONDARY_HOSTNAME}-log
         volumes:
             - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
             - openam-secondary-base-dir:/var/tmp/openam-base-dir:ro

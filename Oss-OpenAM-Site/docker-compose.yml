@@ -106,12 +106,12 @@ services:
         domainname: ${OPENAM_DOMAIN_NAME}
         depends_on:
             - admin-fluentd
-        ports:
-            - "8080:8080"
-            - "8443:8443"
-            - "50389:50389"
-            - "50889:50889"
-            - "4444:4444"
+        # ports:
+        #     - "8080:8080"
+        #     - "8443:8443"
+        #     - "50389:50389"
+        #     - "50889:50889"
+        #     - "4444:4444"
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
@@ -150,12 +150,12 @@ services:
         domainname: ${OPENAM_DOMAIN_NAME}
         depends_on:
             - admin-fluentd
-        ports:
-            - "28080:8080"
-            - "28443:8443"
-            - "52389:50389"
-            - "58989:58989"
-            - "24444:4444"
+        # ports:
+        #     - "28080:8080"
+        #     - "28443:8443"
+        #     - "52389:50389"
+        #     - "58989:58989"
+        #     - "24444:4444"
         volumes:
             - openam-shared:/opt/shared
             - openam-secondary-base-dir:${OPENAM_BASE_DIR}

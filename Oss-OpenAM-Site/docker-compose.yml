@@ -85,25 +85,26 @@ services:
         restart: always
 
 
-    # openam-lb TLS Certificate
-    openam-tls-cert:
-        image: alpine:latest
-        container_name: openam-tls-cert
-        # volumes:
-        #     - openam-primary-base-dir:/opt/logs/openam-base-dir:ro
-        #     - openam-primary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
-        # entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
+    # # openam-lb TLS Certificate
+    # openam-tls-cert:
+    #     image: alpine:latest
+    #     container_name: openam-tls-cert
+    #     # volumes:
+    #     #     - openam-primary-base-dir:/opt/logs/openam-base-dir:ro
+    #     #     - openam-primary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
+    #     # entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
 
 
     # openam-primary
     # 127.0.0.1 openam-primary.example.com
-    # http://openam-primary.example.com:8080/openam
-    # http://openam-primary:8080/openam
+    # http://openam-primary.example.com:18080/openam
     openam-primary:
         image: ${OPENAM_TOMCAT_IMAGE_TAG}
         container_name: ${OPENAM_PRIMARY_HOSTNAME}
         hostname: ${OPENAM_PRIMARY_HOSTNAME}
         domainname: ${OPENAM_DOMAIN_NAME}
+        ports:
+            - "18080:8080"
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
@@ -124,6 +125,8 @@ services:
             - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh:ro
             - openam-primary-base-dir:/opt/logs/openam-base-dir:ro
             - openam-primary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
+        env_file:
+            - .env
         entrypoint: "bash /opt/scripts/watch_openam_logs.sh"
         # logging:
         #     driver: "fluentd"
@@ -139,6 +142,8 @@ services:
         container_name: ${OPENAM_SECONDARY_HOSTNAME}
         hostname: ${OPENAM_SECONDARY_HOSTNAME}
         domainname: ${OPENAM_DOMAIN_NAME}
+        ports:
+            - "28080:8080"
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
@@ -160,6 +165,8 @@ services:
             - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh:ro
             - openam-secondary-base-dir:/opt/logs/openam-base-dir:ro
             - openam-secondary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
+        env_file:
+            - .env
         entrypoint: "bash /opt/scripts/watch_openam_logs.sh"
         # logging:
         #     driver: "fluentd"

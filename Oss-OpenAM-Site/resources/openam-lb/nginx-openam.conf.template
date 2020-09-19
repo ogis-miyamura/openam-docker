@@ -1,0 +1,31 @@
+upstream backend {
+    server ${OPENAM_PRIMARY_HOSTNAME}:8080;
+    server ${OPENAM_SECONDARY_HOSTNAME}:8080;
+
+    # unknown directive "sticky" エラー
+    # おそらく sticky モジュール が不足してそう
+    # sticky cookie ${OPENAM_PROXY_BALANCER_STICKY_COOKIE} domain=${OPENAM_DOMAIN_NAME} path=/;
+
+    # IP アドレスでSticky
+    # 正常動作するが、Localhost からだと常に IP が同じなので、振り分け先が固定となってしまう
+    ip_hash;
+}
+
+server {
+    listen 80;
+    server_name openam-lb.example.com;
+
+    proxy_set_header Host            $host;
+    proxy_set_header X-Real-IP       $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Server $host;
+
+    location / {
+        proxy_pass http://backend/;
+
+        # unknown directive "health_check" エラー
+        # おそらく health_check モジュール が不足してそう
+        # health_check uri=/openam/isAlive.jsp interval=10 fails=2 passes=1;
+    }
+}

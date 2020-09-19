@@ -67,23 +67,37 @@ services:
     #     #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
 
-    # openam-lb
+    # # openam-lb (Apache)
+    # # 127.0.0.1 openam-lb.example.com
+    # # http://openam-lb.example.com/openam
+    # # http://openam-lb.example.com/balancer-manager/
+    # openam-lb:
+    #     image: ${OPENAM_APACHE_IMAGE_TAG}
+    #     container_name: ${OPENAM_LB_HOSTNAME}
+    #     ports:
+    #         - "80:80"
+    #         # - "443:443"
+    #     volumes:
+    #         - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+    #     env_file:
+    #         - .env
+    #     restart: always
+
+
+    # openam-lb (nginx)
     # 127.0.0.1 openam-lb.example.com
     # http://openam-lb.example.com/openam
-    # https://openam-lb.example.com/openam
-    # http://openam-lb.example.com/balancer-manager/
     openam-lb:
-        image: ${OPENAM_APACHE_IMAGE_TAG}
+        image: ${OPENAM_NGINX_IMAGE_TAG}
         container_name: ${OPENAM_LB_HOSTNAME}
         ports:
             - "80:80"
-            - "443:443"
+            # - "443:443"
         volumes:
-            - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf
+            - ./resources/openam-lb/nginx-openam.conf.template:/etc/nginx/templates/nginx-openam.conf.template:ro
         env_file:
             - .env
         restart: always
-
 
     # # openam-lb TLS Certificate
     # openam-tls-cert:

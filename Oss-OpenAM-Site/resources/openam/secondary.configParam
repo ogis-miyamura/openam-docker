@@ -7,7 +7,7 @@
 #
 # Install
 #
-BASE_DIR=/root/openam
+BASE_DIR=${OPENAM_BASE_DIR}
 PLATFORM_LOCALE=en_US
 ie7fix=11
 locale=ja
@@ -45,14 +45,14 @@ DS_EMB_REPL_REPLPORT2=50889
 #
 # Server
 #
-DEPLOYMENT_URI=/openam
-COOKIE_DOMAIN=.example.com
-SERVER_HOST=openam-secondary
-SERVER_URI=/openam
-SERVER_URL=http://openam-secondary:8080
+DEPLOYMENT_URI=${OPENAM_URL_CONTEXT}
+COOKIE_DOMAIN=${OPENAM_DOMAIN_NAME}
+SERVER_HOST=${OPENAM_SECONDARY_HOSTNAME}
+SERVER_URI=${OPENAM_URL_CONTEXT}
+SERVER_URL=http://${OPENAM_SECONDARY_HOSTNAME}:8080
 
 #
 # Site
 #
 LB_SITE_NAME=openam
-existingserverid=http://openam-primary:8080/openam
+existingserverid=http://${OPENAM_PRIMARY_HOSTNAME}:8080${OPENAM_URL_CONTEXT}

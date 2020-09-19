@@ -34,7 +34,7 @@ services:
     #     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
     #     container_name: admin-elasticsearch
     #     hostname: admin-elasticsearch
-    #     domainname: example.com
+    #     domainname: ${OPENAM_DOMAIN_NAME}
     #     environment:
     #         - discovery.type=single-node
     #         - cluster.name=docker-cluster
@@ -57,7 +57,7 @@ services:
     #     image: docker.elastic.co/kibana/kibana:7.9.0
     #     container_name: admin-kibana
     #     hostname: admin-kibana
-    #     domainname: example.com
+    #     domainname: ${OPENAM_DOMAIN_NAME}
     #     environment:
     #         ELASTICSEARCH_HOSTS: http://admin-elasticsearch:9200
     #         ELASTICSEARCH_URL: http://admin-elasticsearch:9200
@@ -80,12 +80,8 @@ services:
             - "443:443"
         volumes:
             - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf
-        environment:
-            PROXY_PATH: /
-            PROXY_BALANCER_PRIMARY: http://${OPENAM_PRIMARY_HOSTNAME}:8080
-            PROXY_BALANCER_SECONDARY: http://${OPENAM_SECONDARY_HOSTNAME}:8080
-            PROXY_BALANCER_STICKY_COOKIE: ${OPENAM_PROXY_BALANCER_STICKY_COOKIE}
-            PROXY_BALANCER_RETRY: ${OPENAM_PROXY_BALANCER_RETRY}
+        env_file:
+            - .env
         restart: always
 
 
@@ -107,7 +103,7 @@ services:
         image: tomcat:${OPENAM_TOMCAT_IMAGE_TAG}
         container_name: ${OPENAM_PRIMARY_HOSTNAME}
         hostname: ${OPENAM_PRIMARY_HOSTNAME}
-        domainname: example.com
+        domainname: ${OPENAM_DOMAIN_NAME}
         depends_on:
             - admin-fluentd
         ports:
@@ -119,15 +115,13 @@ services:
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
-            - openam-primary-base-dir:/root/openam
+            - openam-primary-base-dir:${OPENAM_BASE_DIR}
             - openam-primary-tomcat-logs:/usr/local/tomcat/logs
             - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh:ro
             - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
             - ./resources/openam/primary.configParam:/opt/install/.configParam:ro
-        environment: 
-            OPENAM_ADMIN_PASSWORD: ${OPENAM_ADMIN_PASSWORD}
-            OPENAM_AGENT_PASSWORD: ${OPENAM_AGENT_PASSWORD}
-            OPENAM_AM_ENC_KEY: ${OPENAM_AM_ENC_KEY}
+        env_file:
+            - .env
         entrypoint: "sh /opt/install/wait_download.sh"
 
     # Tail openam-primary
@@ -153,7 +147,7 @@ services:
         image: tomcat:${OPENAM_TOMCAT_IMAGE_TAG}
         container_name: ${OPENAM_SECONDARY_HOSTNAME}
         hostname: ${OPENAM_SECONDARY_HOSTNAME}
-        domainname: example.com
+        domainname: ${OPENAM_DOMAIN_NAME}
         depends_on:
             - admin-fluentd
         ports:
@@ -164,17 +158,15 @@ services:
             - "24444:4444"
         volumes:
             - openam-shared:/opt/shared
-            - openam-secondary-base-dir:/root/openam
+            - openam-secondary-base-dir:${OPENAM_BASE_DIR}
             - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
             - /dev/urandom:/dev/random
             - ./resources/openam/wait_install_primary.sh:/opt/install/wait_install_primary.sh:ro
             - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh:ro
             - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
             - ./resources/openam/secondary.configParam:/opt/install/.configParam:ro
-        environment: 
-            OPENAM_ADMIN_PASSWORD: ${OPENAM_ADMIN_PASSWORD}
-            OPENAM_AGENT_PASSWORD: ${OPENAM_AGENT_PASSWORD}
-            OPENAM_AM_ENC_KEY: ${OPENAM_AM_ENC_KEY}
+        env_file:
+            - .env
         entrypoint: "sh /opt/install/wait_install_primary.sh"
 
     # Tail openam-secondary

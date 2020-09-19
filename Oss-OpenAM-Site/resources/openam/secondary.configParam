@@ -11,13 +11,13 @@ BASE_DIR=${OPENAM_BASE_DIR}
 PLATFORM_LOCALE=en_US
 ie7fix=11
 locale=ja
+acceptLicense=true
 
 #
 # Admin
 #
 ADMIN_PWD=${OPENAM_ADMIN_PASSWORD}
 AM_ENC_KEY=${OPENAM_AM_ENC_KEY}
-acceptLicense=true
 
 #
 # DataStore

@@ -27,7 +27,7 @@ java \
 
 echo "INFO: Cleanup install parameters"
 rm -f /opt/install/.configParam-comp
-unset $(compgen -v | grep "OPENAM_")
+unset $(env | grep "^OPENAM_" | sed -e s/=.*//)
 
 echo "INFO: Initialize completed"
 touch /opt/shared/DONE-$(hostname)

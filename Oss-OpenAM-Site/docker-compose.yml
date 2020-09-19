@@ -12,21 +12,21 @@ services:
             - "9000:9000"
             - "8000:8000"
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
+            - /var/run/docker.sock:/var/run/docker.sock:ro
             - admin-portainer-data:/data
         restart: always
 
-    # Fluentd
-    admin-fluentd:
-        build: ./resources/admin-fluentd
-        container_name: admin-fluentd
-        ports:
-            - "24224:24224"
-            - "24224:24224/udp"
-        volumes:
-            - admin-fluentd-log:/fluentd/log
-            - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
-        restart: always
+    # # Fluentd
+    # admin-fluentd:
+    #     build: ./resources/admin-fluentd
+    #     container_name: admin-fluentd
+    #     ports:
+    #         - "24224:24224"
+    #         - "24224:24224/udp"
+    #     volumes:
+    #         - admin-fluentd-log:/fluentd/log
+    #         - ./resources/admin-fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    #     restart: always
 
     # # Elasticsearch
     # # https://www.elastic.co/guide/en/kibana/current/docker.html
@@ -73,7 +73,7 @@ services:
     # https://openam-lb.example.com/openam
     # http://openam-lb.example.com/balancer-manager/
     openam-lb:
-        image: httpd:${OPENAM_APACHE_IMAGE_TAG}
+        image: ${OPENAM_APACHE_IMAGE_TAG}
         container_name: ${OPENAM_LB_HOSTNAME}
         ports:
             - "80:80"
@@ -90,8 +90,8 @@ services:
         image: alpine:latest
         container_name: openam-tls-cert
         # volumes:
-        #     - openam-primary-base-dir:/var/tmp/openam-base-dir:ro
-        #     - openam-primary-tomcat-logs:/var/tmp/openam-tomcat-logs:ro
+        #     - openam-primary-base-dir:/opt/logs/openam-base-dir:ro
+        #     - openam-primary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
         # entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
 
 
@@ -100,18 +100,10 @@ services:
     # http://openam-primary.example.com:8080/openam
     # http://openam-primary:8080/openam
     openam-primary:
-        image: tomcat:${OPENAM_TOMCAT_IMAGE_TAG}
+        image: ${OPENAM_TOMCAT_IMAGE_TAG}
         container_name: ${OPENAM_PRIMARY_HOSTNAME}
         hostname: ${OPENAM_PRIMARY_HOSTNAME}
         domainname: ${OPENAM_DOMAIN_NAME}
-        depends_on:
-            - admin-fluentd
-        # ports:
-        #     - "8080:8080"
-        #     - "8443:8443"
-        #     - "50389:50389"
-        #     - "50889:50889"
-        #     - "4444:4444"
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
@@ -126,13 +118,13 @@ services:
 
     # Tail openam-primary
     openam-primary-log:
-        image: alpine:latest
+        build: ./resources/admin-tail
         container_name: ${OPENAM_PRIMARY_HOSTNAME}-log
         volumes:
-            - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
-            - openam-primary-base-dir:/var/tmp/openam-base-dir:ro
-            - openam-primary-tomcat-logs:/var/tmp/openam-tomcat-logs:ro
-        entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
+            - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh:ro
+            - openam-primary-base-dir:/opt/logs/openam-base-dir:ro
+            - openam-primary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
+        entrypoint: "bash /opt/scripts/watch_openam_logs.sh"
         # logging:
         #     driver: "fluentd"
         #     options:
@@ -143,24 +135,15 @@ services:
     # 127.0.0.1 openam-secondary.example.com
     # http://openam-secondary.example.com:28080/openam
     openam-secondary:
-        # image: "${OPENAM_TOMCAT_IMAGE}"
-        image: tomcat:${OPENAM_TOMCAT_IMAGE_TAG}
+        image: ${OPENAM_TOMCAT_IMAGE_TAG}
         container_name: ${OPENAM_SECONDARY_HOSTNAME}
         hostname: ${OPENAM_SECONDARY_HOSTNAME}
         domainname: ${OPENAM_DOMAIN_NAME}
-        depends_on:
-            - admin-fluentd
-        # ports:
-        #     - "28080:8080"
-        #     - "28443:8443"
-        #     - "52389:50389"
-        #     - "58989:58989"
-        #     - "24444:4444"
         volumes:
+            - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
             - openam-secondary-base-dir:${OPENAM_BASE_DIR}
             - openam-secondary-tomcat-logs:/usr/local/tomcat/logs
-            - /dev/urandom:/dev/random
             - ./resources/openam/wait_install_primary.sh:/opt/install/wait_install_primary.sh:ro
             - ./resources/openam/wait_download.sh:/opt/install/wait_download.sh:ro
             - ./resources/openam/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
@@ -171,13 +154,13 @@ services:
 
     # Tail openam-secondary
     openam-secondary-log:
-        image: alpine:latest
+        build: ./resources/admin-tail
         container_name: ${OPENAM_SECONDARY_HOSTNAME}-log
         volumes:
-            - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh
-            - openam-secondary-base-dir:/var/tmp/openam-base-dir:ro
-            - openam-secondary-tomcat-logs:/var/tmp/openam-tomcat-logs:ro
-        entrypoint: "sh /opt/scripts/watch_openam_logs.sh"
+            - ./resources/admin-tail/watch_openam_logs.sh:/opt/scripts/watch_openam_logs.sh:ro
+            - openam-secondary-base-dir:/opt/logs/openam-base-dir:ro
+            - openam-secondary-tomcat-logs:/opt/logs/openam-tomcat-logs:ro
+        entrypoint: "bash /opt/scripts/watch_openam_logs.sh"
         # logging:
         #     driver: "fluentd"
         #     options:

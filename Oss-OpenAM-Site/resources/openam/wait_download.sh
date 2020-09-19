@@ -13,7 +13,6 @@ sleep 5
 
 echo "$(date) INFO: Extract environmental variables on .configParam"
 eval "echo \"$(cat /opt/install/.configParam)\"" > /opt/install/.configParam-comp
-cat /opt/install/.configParam-comp
 
 echo "$(date) INFO: Start OpenAM silent install"
 unzip \

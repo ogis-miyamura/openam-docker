@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "$(date) INFO: Download openam.war"
-curl -L https://github.com/openam-jp/openam/releases/download/14.0.0/openam-14.0.0.war \
+curl -L ${OPENAM_WAR_URL} \
     -o /usr/local/tomcat/webapps/openam.war
 
 echo "$(date) INFO: Start Tomcat"
@@ -25,8 +25,9 @@ java \
     --acceptLicense \
     | tee /opt/install/install.log
 
-echo "INFO: Cleanup parameter file"
+echo "INFO: Cleanup install parameters"
 rm -f /opt/install/.configParam-comp
+unset $(compgen -v | grep "OPENAM_")
 
 echo "INFO: Initialize completed"
 touch /opt/shared/DONE-$(hostname)

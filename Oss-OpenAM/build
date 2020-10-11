@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Determine the parameter matrix to build on DockerHub
+
+set -eu
+
+# ===== tag patterns =====
+#
+# tomcatX-jdkY
+#
+# X: 7 / 8 / 9 / 10
+# Y: 8 / 11 / 14 / 15
+
+# Default value is Tomcat 9
+TOMCAT_MAJOR='9'
+case ${DOCKER_TAG} in
+    tomcat7* )
+        TOMCAT_MAJOR='7'
+        ;;
+    tomcat8* )
+        TOMCAT_MAJOR='8'
+        ;;
+    tomcat9* )
+        TOMCAT_MAJOR='9'
+        ;;
+    tomcat10* )
+        TOMCAT_MAJOR='10'
+        ;;
+esac
+
+JDK_VERSION='8'
+case ${DOCKER_TAG} in
+    *-jdk11* )
+        JDK_VERSION='11'
+        ;;
+    *-jdk14* )
+        JDK_VERSION='14'
+        ;;
+    *-jdk15* )
+        JDK_VERSION='15'
+        ;;
+esac
+
+cat << _EOT_
+Docker build parameters:
+ - TOMCAT_MAJOR="${TOMCAT_MAJOR:-""}"
+ - VERSION="${JDK_VERSION:-""}"
+ - f ${DOCKERFILE_PATH:-"Dockerfile"}
+ - t ${IMAGE_NAME}
+_EOT_
+
+docker build \
+    --build-arg TOMCAT_MAJOR="${TOMCAT_MAJOR:-""}" \
+    --build-arg JDK_VERSION="${JDK_VERSION:-""}" \
+    -f ${DOCKERFILE_PATH:-"Dockerfile"} \
+    -t ${IMAGE_NAME} \
+    .

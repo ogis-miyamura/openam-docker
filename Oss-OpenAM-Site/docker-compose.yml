@@ -9,8 +9,8 @@ services:
         image: portainer/portainer
         container_name: admin-portainer
         ports:
-            - "9000:9000"
-            - "8000:8000"
+            - "${PORT_PORTAINER_WEB}:9000"
+            - "${PORT_PORTAINER_AGENT}:8000"
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - admin-portainer-data:/data
@@ -45,7 +45,7 @@ services:
     #             soft: -1
     #             hard: -1
     #     ports:
-    #         - 9200:9200
+    #         - ${PORT_EFK_ELASTICSEARCH}:9200
     #     volumes:
     #         - admin-elasticsearch-data:/usr/share/elasticsearch/data
 
@@ -62,42 +62,42 @@ services:
     #         ELASTICSEARCH_HOSTS: http://admin-elasticsearch:9200
     #         ELASTICSEARCH_URL: http://admin-elasticsearch:9200
     #     ports:
-    #         - 5601:5601
+    #         - ${PORT_EFK_KIBANA}:5601
     #     # volumes:
     #     #     - ./resources/admin-kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
 
-    # # openam-lb (Apache)
-    # # 127.0.0.1 openam-lb.example.com
-    # # http://openam-lb.example.com/openam
-    # # http://openam-lb.example.com/balancer-manager/
-    # openam-lb:
-    #     image: ${OPENAM_APACHE_IMAGE_TAG}
-    #     container_name: ${OPENAM_LB_HOSTNAME}
-    #     ports:
-    #         - "80:80"
-    #         # - "443:443"
-    #     volumes:
-    #         - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
-    #     env_file:
-    #         - .env
-    #     restart: always
-
-
-    # openam-lb (nginx)
+    # openam-lb (Apache)
     # 127.0.0.1 openam-lb.example.com
     # http://openam-lb.example.com/openam
+    # http://openam-lb.example.com/balancer-manager/
     openam-lb:
-        image: ${OPENAM_NGINX_IMAGE_TAG}
+        image: ${OPENAM_APACHE_IMAGE_TAG}
         container_name: ${OPENAM_LB_HOSTNAME}
         ports:
-            - "80:80"
-            # - "443:443"
+            - "${PORT_OPENAM_LB_HTTP}:80"
+            # - "${PORT_OPENAM_LB_HTTPS}:443"
         volumes:
-            - ./resources/openam-lb/nginx-openam.conf.template:/etc/nginx/templates/nginx-openam.conf.template:ro
+            - ./resources/openam-lb/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
         env_file:
             - .env
         restart: always
+
+
+    # # openam-lb (nginx)
+    # # 127.0.0.1 openam-lb.example.com
+    # # http://openam-lb.example.com/openam
+    # openam-lb:
+    #     image: ${OPENAM_NGINX_IMAGE_TAG}
+    #     container_name: ${OPENAM_LB_HOSTNAME}
+    #     ports:
+    #         - "${PORT_OPENAM_LB_HTTP}:80"
+    #         # - "${PORT_OPENAM_LB_HTTPS}:443"
+    #     volumes:
+    #         - ./resources/openam-lb/nginx-openam.conf.template:/etc/nginx/templates/nginx-openam.conf.template:ro
+    #     env_file:
+    #         - .env
+    #     restart: always
 
     # # openam-lb TLS Certificate
     # openam-tls-cert:
@@ -118,7 +118,7 @@ services:
         hostname: ${OPENAM_PRIMARY_HOSTNAME}
         domainname: ${OPENAM_DOMAIN_NAME}
         ports:
-            - "18080:8080"
+            - "${PORT_OPENAM_PRIMARY}:8080"
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared
@@ -157,7 +157,7 @@ services:
         hostname: ${OPENAM_SECONDARY_HOSTNAME}
         domainname: ${OPENAM_DOMAIN_NAME}
         ports:
-            - "28080:8080"
+            - "${PORT_OPENAM_SECONDARY}:8080"
         volumes:
             - /dev/urandom:/dev/random:ro
             - openam-shared:/opt/shared

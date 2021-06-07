@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+
+    # --------------------
+    # admin-portainer
+    #   127.x.x.10
+    #   xxx-admin-portainer.example.com
+    #   http://xxx-admin-portainer.example.com:9000
+    #
+    admin-portainer:
+        image: portainer/portainer
+        container_name: ${ADMIN_PORTAINER_HOSTNAME}
+        ports:
+            - "${ADMIN_PORTAINER_IP}:9000:9000"
+            - "${ADMIN_PORTAINER_IP}:8000:8000"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - admin-portainer-data:/data
+        restart: unless-stopped
+
+volumes:
+    admin-portainer-data:

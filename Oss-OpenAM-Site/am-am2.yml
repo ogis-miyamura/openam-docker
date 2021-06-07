@@ -1,0 +1,47 @@
+version: "3.7"
+
+services:
+
+    # --------------------
+    # am-am1, am-am2
+    #   127.x.x.21 127.x.x.22
+    #   xxx-am-am1.example.com xxx-am-am2.example.com
+    #   http://xxx-am-am1.example.com:8080/openam
+    #   http://xxx-am-am2.example.com:8080/openam
+    #   http://xxx-am-lb.example.com/openam
+    #
+    am-am2:
+        image: ${AM_TOMCAT_IMAGE_TAG}
+        container_name: ${AM_AM2_HOSTNAME}
+        domainname: ${COMMON_DOMAIN_NAME}
+        # Replicate the properties defined in .env to environment variables in the container
+        env_file: .env
+        networks:
+            # Allow containers to resolve names with each other
+            - fixed_am_network
+        ports:
+            # 8080(Tomcat http), 8009(Tomcat ajp), 4444(OpenDJ Admin), 50389(OpenDJ LDAP)
+            - "${AM_AM2_IP}:8080:8080"
+            - "${AM_AM2_IP}:50389:50389"
+        volumes:
+            - /dev/urandom:/dev/random:ro
+            - am-am2-base-dir:${AM_BASE_DIR}
+            - am-am2-webapp-dir:${AM_WEBAPP_DIR}
+            - ./resources/am-am/server.ajp-with-secret.xml:/usr/local/tomcat/conf/server.xml
+            - ./resources/am-am/context.legacycookie-enable.xml:/usr/local/tomcat/conf/context.xml
+            # - am-am2-tomcat-logs:/usr/local/tomcat/logs
+            # - ./resources/am-am/wait_download.sh:/opt/install/wait_download.sh:ro
+            # - ./resources/am-am/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
+            #- ./resources/am-am/primary.configParam:/opt/install/.configParam:ro
+        # entrypoint: "sh /opt/install/wait_download.sh"
+        restart: unless-stopped
+
+volumes:
+    # OpenAM Local
+    am-am2-base-dir:
+    am-am2-webapp-dir:
+
+networks:
+    # Allow containers to resolve names with each other
+    fixed_am_network:
+        driver: bridge

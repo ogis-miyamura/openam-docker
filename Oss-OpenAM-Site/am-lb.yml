@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+
+    # --------------------
+    # am-lb
+    #   127.x.x.20
+    #   xxx-am-lb.example.com
+    #   http://xxx-am-lb.example.com/openam
+    #   http://xxx-am-lb.example.com/balancer-manager/
+    #
+    am-lb:
+        image: ${AM_LB_APACHE_IMAGE_TAG}
+        container_name: ${AM_LB_HOSTNAME}
+        env_file: .env
+        networks: 
+            # Allow containers to resolve names with each other
+            - fixed_am_network
+        ports:
+            - "${AM_LB_IP}:80:80"
+            - "${AM_LB_IP}:443:443"
+        volumes:
+            - ./resources/am-lb/httpd-ajp-balancer.conf:/usr/local/apache2/conf/httpd.conf:ro
+        restart: unless-stopped
+
+networks:
+    # Allow containers to resolve names with each other
+    fixed_am_network:
+        driver: bridge

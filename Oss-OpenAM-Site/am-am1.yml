@@ -11,7 +11,12 @@ services:
     #   http://xxx-am-lb.example.com/openam
     #
     am-am1:
-        image: ${AM_TOMCAT_IMAGE_TAG}
+        build:
+          context: ./resources/am-am
+          args:
+            AM_IMAGE: ${AM_TOMCAT_IMAGE_TAG}
+            MVN_VERSION: ${MVN_VERSION}
+        image: am-am
         container_name: ${AM_AM1_HOSTNAME}
         domainname: ${COMMON_DOMAIN_NAME}
         # Replicate the properties defined in .env to environment variables in the container
@@ -25,21 +30,20 @@ services:
             - "${AM_AM1_IP}:50389:50389"
         volumes:
             - /dev/urandom:/dev/random:ro
+            - am-shared-m2-dir:/root/.m2
+            - am-shared-webapp-dir:${AM_WEBAPP_DIR}
             - am-am1-base-dir:${AM_BASE_DIR}
-            - am-am1-webapp-dir:${AM_WEBAPP_DIR}
+            - ./workspace:/opt/workspace
             - ./resources/am-am/server.ajp-with-secret.xml:/usr/local/tomcat/conf/server.xml
             - ./resources/am-am/context.legacycookie-enable.xml:/usr/local/tomcat/conf/context.xml
-            # - am-am1-tomcat-logs:/usr/local/tomcat/logs
-            # - ./resources/am-am/wait_download.sh:/opt/install/wait_download.sh:ro
-            # - ./resources/am-am/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:/opt/install/openam-distribution-ssoconfiguratortools-15.0.0-SNAPSHOT.zip:ro
-            #- ./resources/am-am/primary.configParam:/opt/install/.configParam:ro
-        # entrypoint: "sh /opt/install/wait_download.sh"
+        command: sleep infinity
         restart: unless-stopped
 
 volumes:
     # OpenAM Local
+    am-shared-m2-dir:
+    am-shared-webapp-dir:
     am-am1-base-dir:
-    am-am1-webapp-dir:
 
 networks:
     # Allow containers to resolve names with each other

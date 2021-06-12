@@ -1,0 +1,36 @@
+{
+  // 任意の名前
+  "name": "Remote DevEnv OpenAM",
+
+  // Remoteで利用する doccker-compose ファイル名
+  "dockerComposeFile": [
+    "../am-am1.yml",
+    "../am-am2.yml",
+    "../am-lb.yml",
+    "../admin-portainer.yml",
+  ],
+
+  // Remoteで接続する docker-compose のサービス名
+  "service": "am-am1",
+
+  // コンテナ側に入ったときのカレントディレクトリ
+  "workspaceFolder": "/opt/workspace",
+
+  // コンテナ生成時に、コンテナ側にインストールする拡張機能
+  "extensions": [
+    // Language pack ja
+    "ms-ceintl.vscode-language-pack-ja",
+
+    // Java-Pack
+    "vscjava.vscode-java-pack",
+
+    // Tomcat
+    "adashen.vscode-tomcat",
+  ],
+
+  "settings": {
+    "maven.view": "hierarchical",
+    "tomcat.workspace": "/usr/local/tomcat/",
+    "java.debug.settings.hotCodeReplace": "auto",
+  },
+}

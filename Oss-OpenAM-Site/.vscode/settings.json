@@ -1,0 +1,21 @@
+{
+    // Tomcatのフォルダパス
+    "tomcat.workspace": "/usr/local/tomcat",
+
+    // ソースコード変更時に Tomcat へ反映する
+    "java.debug.settings.hotCodeReplace": "auto",
+
+    // Maven の外観
+    "maven.view": "hierarchical",
+
+    // "git-graph.maxDepthOfRepoSearch": 3,
+    // "gitlens.advanced.repositorySearchDepth": 3,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true,
+    },
+}

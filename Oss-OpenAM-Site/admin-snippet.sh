@@ -6,7 +6,7 @@
 
 
 # admin
-# http://admin-portainer.example.com:9000
+# http://dev-admin-portainer.example.com:9000
 # http://dev-am-lb.example.com/balancer-manager/
 #
 # OpenAM
@@ -41,7 +41,6 @@ docker volume rm oss-openam-site_am-am1-base-dir oss-openam-site_am-am2-base-dir
 
 # download and deploy OpenAM
 docker exec -it dev-am-am1 sh -c "curl -L https://github.com/openam-jp/openam/releases/download/14.0.0/openam-14.0.0.war -o /usr/local/tomcat/webapps/openam.war"
-docker exec -it dev-am-am2 sh -c "curl -L https://github.com/openam-jp/openam/releases/download/14.0.0/openam-14.0.0.war -o /usr/local/tomcat/webapps/openam.war"
 
 # download and deploy OpenAM Java11 compatible module
 docker exec -it dev-am-am1 sh -c "mkdir -p /usr/local/tomcat/webapps/openam && curl -L https://github.com/openam-jp/jdk8-compat/releases/download/1.0.0/jdk8-compat-1.0.0.jar -o /usr/local/tomcat/webapps/openam/WEB-INF/lib/jdk8-compat-1.0.0.jar"

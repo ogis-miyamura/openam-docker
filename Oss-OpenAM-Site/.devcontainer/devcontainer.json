@@ -23,9 +23,6 @@
 
     // Java-Pack
     "vscjava.vscode-java-pack",
-
-    // Tomcat
-    "adashen.vscode-tomcat",
   ],
 
   "settings": {

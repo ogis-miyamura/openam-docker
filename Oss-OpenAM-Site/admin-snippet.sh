@@ -1,13 +1,14 @@
-# hosts "C:\Windows\System32\drivers\etc\hosts"
-127.0.1.10 admin-portainer.example.com
-127.0.1.20 am-lb.example.com
-127.0.1.21 am-am1.example.com
-127.0.1.22 am-am2.example.com
+# hosts
+127.0.1.10 dev-admin-portainer.example.com
+127.0.1.20 dev-am-lb.example.com
+127.0.1.21 dev-am-am1.example.com
+127.0.1.22 dev-am-am2.example.com
 
 
 # admin
 # http://dev-admin-portainer.example.com:9000
 # http://dev-am-lb.example.com/balancer-manager/
+# http://dev-am-am1.example.com:8080/manager
 #
 # OpenAM
 # http://dev-am-am1.example.com:8080/openam

@@ -36,7 +36,6 @@ services:
             - ./workspace:/opt/workspace
             - ./resources/am-am/server.ajp-with-secret.xml:/usr/local/tomcat/conf/server.xml
             - ./resources/am-am/context.legacycookie-enable.xml:/usr/local/tomcat/conf/context.xml
-        command: sleep infinity
         restart: unless-stopped
 
 volumes:

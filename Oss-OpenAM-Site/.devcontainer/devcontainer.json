@@ -24,9 +24,6 @@
     // Java-Pack
     "vscjava.vscode-java-pack",
 
-    // Tomcat
-    "adashen.vscode-tomcat",
-
     // XML by RedHat
     "redhat.vscode-xml",
   ],

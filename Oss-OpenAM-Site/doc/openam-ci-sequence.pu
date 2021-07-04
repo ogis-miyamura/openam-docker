@@ -1,0 +1,211 @@
+@startuml OpenAM-CI
+
+title OpenAM CI (実行バイナリとDockerコンテナのビルド&リリース)
+hide footbox
+autonumber "<b> 0 "
+
+
+box 開発環境 #ffe
+    actor 開発者 as 開 #ffc
+    participant 検証環境 as 検 #ffc
+    database ローカルRepo as L #ffc
+end box
+
+box GitHub #fee
+    database GitHub_Organization as G #fcc
+    database GitHub_Packages as GP #fcc
+    participant GitHub_Actions as GA #fcc
+end box
+
+box DockerHub #eef
+    database DockerHub_Organization as D #aaf
+    participant DockerHub_Build as DB #aaf
+end box
+
+
+group 開発作業
+    alt featureブランチでの開発作業
+        開 -> L : commitしてpush (feature)
+        activate L
+            L --> G : GitHubへpush (feature)
+        deactivate L
+        |||
+
+    else masterブランチへのレビューとマージ
+        開 --> G : レビューしてmerge (master)
+        activate G
+        G -> G : merge (master)
+            activate G
+            deactivate G
+        deactivate G
+        |||
+
+    else tag追加
+        開 -> L : commitしてpush (tag)
+        activate L
+            L --> G : GitHubへpush (tag)
+        deactivate L
+            activate G
+            G -> G : release (tag)
+                activate G
+                deactivate G
+            deactivate G
+        |||
+
+    end
+end
+
+group CI (実行バイナリのビルド)
+    create GA
+    G --> GA : アクション実行 (feature or master or tag)
+    activate GA
+        G <- GA : 実行バイナリのビルドに必要なリソース要求
+        activate G
+            G --> GA : リソース取得 (ビルドスクリプト,ソースコード)
+        deactivate G
+        GA -> GA : 実行バイナリをビルド
+            activate GA
+            deactivate GA
+        note over GP, GA: 実行バイナリのパッケージ命名規則:\n* feature: <package>-<Issue ID>\n* master: <package>-master\n* tag: <package>-v<X.X.X>
+        create GP
+        GP <-- GA : publish (実行バイナリ登録)
+
+        alt feature の場合
+            note over GA: feature へのpushの場合は、リリース更新は無し
+            |||
+
+        else master の場合
+            GA -> GA : リリース更新 (master)
+            activate GA
+                G <-- GA : リリース削除 (master)
+                G <-- GA : リリース追加 (ログ,リリース追加,ソースコードZip登録,実行バイナリ登録)
+            deactivate GA
+            |||
+
+        else tag の場合
+            GA -> GA : リリース更新 (v<X.X.X>)
+            activate GA
+                G <-- GA : リリース追加 (ログ,リリース追加,ソースコードZip登録,実行バイナリ登録)
+            deactivate GA
+            |||
+
+        end
+    deactivate GA
+end
+
+group CI (Dockerコンテナのビルド)
+    note over G, D: あらかじめ GitHub Organization と DockerHub Organization の双方でアプリケーション間連携の許可設定が必要
+    alt GitHub ActionでDockerコンテナをビルドする場合
+        create GA
+        G --> GA : アクション実行 (feature or master or tag)
+        activate GA
+            G <- GA : Dockerコンテナのビルドに必要なリソース要求
+            activate G
+                G --> GA : リソース取得 (Dockerfile)
+            deactivate G
+            GA -> GA : Dockerコンテナをビルド
+            activate GA
+                GP <- GA : Dockerコンテナのビルドに必要なリソース要求
+                activate GP
+                    GP --> GA : リソース取得 (実行バイナリ)
+                deactivate GP
+            deactivate GA
+            note over GP, D: GitHub packages と DockerHub の双方へリリース
+            GP <-- GA : リリース (ログ,Dockerコンテナ)
+            GA --> D : リリース (Dockerコンテナ,tag)
+        deactivate GA
+        |||
+
+    else DockerHubでDockerコンテナをビルドする場合
+        G --> D : フックによってGitHubとDockerHubを連携
+        activate D
+            create DB
+            D --> DB : ビルド実行
+        deactivate D
+
+        activate DB
+            G <- DB : Dockerコンテナのビルドに必要なリソース要求
+            activate G
+                G --> DB : リソース取得 (Dockerfile)
+            deactivate G
+            DB -> DB : Dockerコンテナをビルド
+            activate DB
+                GP <- DB : Dockerコンテナのビルドに必要なリソース要求
+                activate GP
+                    GP --> DB : リソース取得 (実行バイナリ)
+                deactivate GP
+            deactivate DB
+            note over D, DB: DockerHub に対してのみリリース
+            D <- DB : リリース (ログ,Dockerコンテナ,tag)
+        deactivate DB
+        |||
+
+    end
+end
+
+group ビルド成果物を利用 (実行バイナリ単体やDockerコンテナ単体)
+    開 -> G : 実行バイナリやログを要求
+    activate 開
+        activate G
+            開 <-- G : 実行バイナリやログを取得 (warやjar)
+        deactivate G
+    deactivate 開
+    |||
+
+    開 -> D : Dockerコンテナやログを要求
+    activate 開
+        activate D
+            開 <-- D : Dockerコンテナやログを取得
+        deactivate D
+    deactivate 開
+    |||
+end
+
+group ビルド成果物を利用 (Dockerコンテナのリモートデバッグ)
+    create 検
+    開 -> 検 : 検証環境の整備
+    activate 開
+        検 -> 検 : Docker実行環境の整備
+        activate 検
+        deactivate 検
+        検 -> G : 検証環境でリモートデバッグに必要なリソース要求
+        activate 検
+            activate G
+                検 <-- G : 取得 (docker-compose,.env,.vscode)
+            deactivate G
+
+            検 --> 検 : .env調整
+
+            検 --> 検 : docker-compose 起動
+            activate 検
+                検 -> D : Dockerコンテナイメージ要求
+                activate D
+                    検 <- D : Dockerコンテナイメージ取得
+                deactivate D
+            deactivate 検
+            検 --> 検 : リモートデバッグ接続待ち
+        開 <- 検 : 検証環境の整備完了
+        deactivate 検
+    deactivate 開
+    |||
+
+    開 -> 開 : VSCode起動
+    activate 開
+        開 -> G : ソースコードを要求
+        activate G
+            開 <-- G : 取得 (ソースコード)
+        deactivate G
+        開 -> G : リモートデバッグに必要なリソース要求
+        activate G
+            開 <-- G : 取得 (.vscode)
+        deactivate G
+
+        開 -> 検 : リモート接続
+        activate 検
+            開 <- 検 : リモートデバッグ開始
+        deactivate 検
+    deactivate 開
+    |||
+end
+
+@enduml
